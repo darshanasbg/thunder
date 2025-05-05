@@ -1,0 +1,61 @@
+run:
+    timeout: 5m
+    tests: true
+    skip-dirs:
+        - vendor
+        - generated
+
+linters:
+    enable:
+        - govet
+        - staticcheck
+        - errcheck
+        - gosimple
+        - gofmt
+        - goimports
+        - revive
+        - gocritic
+        - unused
+        - ineffassign
+        - typecheck
+        - exportloopref
+        - nakedret
+        - nlafterfunc
+
+linters-settings:
+    gofmt:
+        simplify: true
+
+    goimports:
+        local-prefixes: github.com/asgardeo/thunder
+
+    revive:
+        config: |
+            ignoreGeneratedHeader = false
+            severity = "warning"
+            rules = [
+              {name: "var-naming"},
+              {name: "blank-imports"},
+              {name: "indent-error-flow"},
+              {name: "line-length-limit", arguments: [120]},
+              {name: "if-return"},
+              {name: "import-shadowing"},
+              {name: "unhandled-error"},
+              {name: "exported"},
+            ]
+
+    gocritic:
+        enabled-checks:
+            - ifElseChain
+            - regexpMust
+            - sloppyLen
+            - unnamedResult
+            - hugeParam
+
+    nlafterfunc:
+        require-newline: true
+
+issues:
+    exclude-use-default: false
+    max-issues-per-linter: 0
+    max-same-issues: 0

@@ -13,6 +13,10 @@ PRODUCT_FOLDER=$(BINARY_NAME)-$(VERSION)
 # Default target.
 all: clean build test
 
+lint:
+	@echo "Running golangci-lint..."
+	golangci-lint run ./...
+
 # Clean up build artifacts.
 clean:
 	rm -rf $(OUTPUT_DIR)
@@ -53,4 +57,4 @@ help:
 	@echo "  test         - Run all tests."
 	@echo "  help         - Show the help message."
 
-.PHONY: all clean build _build _package test _integration-test help
+.PHONY: all clean lint build _build _package test _integration-test help

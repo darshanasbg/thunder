@@ -1,0 +1,15 @@
+{
+	"go.lintTool": "golangci-lint",
+	"go.lintFlags": ["run", "--out-format", "colored-line-number", "--timeout=5m"],
+	"go.useLanguageServer": true,
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		"source.organizeImports": true
+	},
+	"[go]": {
+		"editor.defaultFormatter": "golang.go"
+	},
+	"files.trimTrailingWhitespace": true,
+	"files.insertFinalNewline": true,
+	"files.eol": "\n"
+}
