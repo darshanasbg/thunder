@@ -8,10 +8,12 @@ security:
 
 database:
   identity:
-    type: "postgres"
-    hostname: "localhost"
-    port: 5432
-    name: "thunderdb"
-    username: "asgthunder"
-    password: "asgthunder"
-    sslmode: "disable"
+#    type: "postgres"
+#    hostname: "localhost"
+#    port: 5432
+#    name: "thunderdb"
+#    username: "asgthunder"
+#    password: "asgthunder"
+#    sslmode: "disable"
+    type: "sqlite"
+    path: "repository/database/thunder_identity.db"
