@@ -210,9 +210,14 @@ func buildUserFromResultRow(row map[string]interface{}) (model.User, error) {
 		return model.User{}, fmt.Errorf("failed to parse type as string")
 	}
 
-	attributes, ok := row["attributes"].(string)
-	if !ok {
-		logger.Error("failed to parse attributes as string")
+	var attributes string
+	switch v := row["attributes"].(type) {
+	case string:
+		attributes = v
+	case []byte:
+		attributes = string(v) // Convert byte slice to string
+	default:
+		logger.Error("failed to parse attributes", log.Any("raw_value", row["attributes"]), log.String("type", fmt.Sprintf("%T", row["attributes"])))
 		return model.User{}, fmt.Errorf("failed to parse attributes as string")
 	}
 

@@ -23,22 +23,22 @@ import dbmodel "github.com/asgardeo/thunder/internal/system/database/model"
 var (
 	QueryCreateUser = dbmodel.DBQuery{
 		Id:    "ASQ-USER_MGT-01",
-		Query: "INSERT INTO USER (USER_ID, ORG_ID, TYPE, ATTRIBUTES) VALUES ($1, $2, $3, $4)",
+		Query: "INSERT INTO \"USER\" (USER_ID, ORG_ID, TYPE, ATTRIBUTES) VALUES ($1, $2, $3, $4)",
 	}
 	QueryGetUserByUserId = dbmodel.DBQuery{
 		Id:    "ASQ-USER_MGT-02",
-		Query: "SELECT USER_ID, ORG_ID, TYPE, ATTRIBUTES FROM USER WHERE USER_ID = $1",
+		Query: "SELECT USER_ID, ORG_ID, TYPE, ATTRIBUTES FROM \"USER\" WHERE USER_ID = $1",
 	}
 	QueryGetUserList = dbmodel.DBQuery{
 		Id:    "ASQ-USER_MGT-03",
-		Query: "SELECT USER_ID, ORG_ID, TYPE, ATTRIBUTES FROM USER",
+		Query: "SELECT USER_ID, ORG_ID, TYPE, ATTRIBUTES FROM \"USER\"",
 	}
 	QueryUpdateUserByUserId = dbmodel.DBQuery{
 		Id:    "ASQ-USER_MGT-04",
-		Query: "UPDATE USER SET ORG_ID = $2, TYPE = $3, ATTRIBUTES = $4 WHERE USER_ID = $1;",
+		Query: "UPDATE \"USER\" SET ORG_ID = $2, TYPE = $3, ATTRIBUTES = $4 WHERE USER_ID = $1;",
 	}
 	QueryDeleteUserByUserId = dbmodel.DBQuery{
 		Id:    "ASQ-USER_MGT-05",
-		Query: "DELETE FROM USER WHERE USER_ID = $1",
+		Query: "DELETE FROM \"USER\" WHERE USER_ID = $1",
 	}
 )
