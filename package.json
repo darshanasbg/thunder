@@ -1,0 +1,19 @@
+{
+  "name": "thunder-source",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "start": "make run",
+    "dev": "pnpm i && pnpm build && pnpm --filter gate dev",
+    "oauth-sample": "pnpm --filter oauth dev",
+    "build": "nx run-many --target=build --all",
+    "lint": "nx run-many --target=lint --all",
+    "test": "nx run-many --target=test --all",
+    "graph": "nx graph"
+  },
+  "private": true,
+  "devDependencies": {
+    "@nx/workspace": "20.8.0",
+    "nx": "20.8.0"
+  }
+}

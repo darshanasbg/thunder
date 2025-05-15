@@ -1,0 +1,72 @@
+{
+  "version": 2,
+  "$schema": "./node_modules/nx/schemas/workspace-schema.json",
+  "projects": {
+    "oxygen-ui": {
+      "root": "frontend/packages/oxygen-ui",
+      "sourceRoot": "packages/oxygen-ui/src",
+      "projectType": "library",
+      "targets": {
+        "build": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "tsc",
+            "cwd": "packages/oxygen-ui"
+          }
+        }
+      }
+    },
+    "gate": {
+      "root": "frontend/apps/gate",
+      "targets": {
+        "build": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "next build",
+            "cwd": "apps/gate"
+          }
+        },
+        "serve": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "next dev",
+            "cwd": "apps/gate"
+          }
+        },
+        "lint": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "next lint",
+            "cwd": "apps/gate"
+          }
+        }
+      }
+    },
+    "admin": {
+      "root": "frontend/apps/admin",
+      "targets": {
+        "build": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "next build",
+            "cwd": "apps/admin"
+          }
+        },
+        "serve": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "next dev",
+            "cwd": "apps/admin"
+          }
+        },
+        "lint": {
+          "executor": "nx:run-commands",
+          "options": {
+            "command": "next lint",
+            "cwd": "apps/admin"
+          }
+        }
+      }
+    }
+  }
+}

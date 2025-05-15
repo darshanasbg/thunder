@@ -2,6 +2,10 @@ server:
   hostname: "localhost"
   port: 8090
 
+gate_client:
+  hostname: "localhost"
+  port: 9090
+
 security:
   cert_file: "repository/resources/security/server.crt"
   key_file: "repository/resources/security/server.key"

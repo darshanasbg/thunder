@@ -34,6 +34,12 @@ type ServerConfig struct {
 	Port     int    `yaml:"port"`
 }
 
+// GateClientConfig holds the client configuration details.
+type GateClientConfig struct {
+	Hostname string `yaml:"hostname"`
+	Port     int    `yaml:"port"`
+}
+
 // SecurityConfig holds the security configuration details.
 type SecurityConfig struct {
 	CertFile string `yaml:"cert_file"`
@@ -103,6 +109,7 @@ type AuthenticatorConfig struct {
 // Config holds the complete configuration details of the server.
 type Config struct {
 	Server        ServerConfig        `yaml:"server"`
+	GateClient    GateClientConfig  	`yaml:"gate_client"`
 	Security      SecurityConfig      `yaml:"security"`
 	Database      DatabaseConfig      `yaml:"database"`
 	UserStore     UserStore           `yaml:"user_store"`

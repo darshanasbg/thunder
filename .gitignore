@@ -11,8 +11,15 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Dependency directories
+node_modules
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
 # Go workspace file
 go.work
@@ -20,6 +27,7 @@ go.work.sum
 
 # OS generated files
 .DS_Store
+Thumbs.db
 
 # Server certificates.
 *.pem
@@ -32,11 +40,59 @@ backend/bin/
 
 # IDE settings, swap files, and temporary artifacts
 .idea
-.vscode
 *.swp
 *.swo
 *~
 *.tgz
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-# Frontend build artifacts
-backend/cmd/server/dist/
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Misc
+.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# NX artifacts
+.nx/cache
+.nx/workspace-data
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# next.js artifacts
+.next
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+
+# Project compiled output folders
+build
+target
+dist
+tmp
+out
+out-tsc

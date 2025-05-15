@@ -1,6 +1,6 @@
 {
   "name": "oauth-client-app",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A React application to demonstrate OAuth2 authorization code flow.",
   "main": "src/index.js",
   "scripts": {

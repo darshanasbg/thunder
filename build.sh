@@ -23,11 +23,13 @@ VERSION_FILE=version.txt
 BINARY_NAME=thunder
 VERSION=$(cat "$VERSION_FILE")
 PRODUCT_FOLDER=${BINARY_NAME}-${VERSION}
+# Server ports
+FRONTEND_PORT=9090
+BACKEND_PORT=8090
 
 # Directories
 OUTPUT_DIR=target
 BUILD_DIR=$OUTPUT_DIR/.build
-FRONTEND_DIR=frontend/loginportal
 BACKEND_BASE_DIR=backend
 BACKEND_DIR=$BACKEND_BASE_DIR/cmd/server
 REPOSITORY_DIR=$BACKEND_BASE_DIR/cmd/server/repository
@@ -46,12 +48,6 @@ function build_backend() {
     go build -C "$BACKEND_BASE_DIR" -o "../$BUILD_DIR/$BINARY_NAME" ./cmd/server
 }
 
-function build_frontend() {
-    echo "Building frontend..."
-    npm install --prefix "$FRONTEND_DIR"
-    npm run build --prefix "$FRONTEND_DIR"
-}
-
 function package() {
     echo "Packaging artifacts..."
     mkdir -p "$OUTPUT_DIR/$PRODUCT_FOLDER"
@@ -60,7 +56,6 @@ function package() {
     cp "$VERSION_FILE" "$OUTPUT_DIR/$PRODUCT_FOLDER/"
     cp -r "$SERVER_SCRIPTS_DIR" "$OUTPUT_DIR/$PRODUCT_FOLDER/"
     cp -r "$SERVER_DB_SCRIPTS_DIR" "$OUTPUT_DIR/$PRODUCT_FOLDER/"
-    cp -r "$FRONTEND_DIR/build" "$OUTPUT_DIR/$PRODUCT_FOLDER/dist/"
     mkdir -p "$OUTPUT_DIR/$PRODUCT_FOLDER/$SECURITY_DIR"
 
     echo "Generating SSL certificates..."
@@ -88,17 +83,18 @@ function test_integration() {
 }
 
 function run() {
-    echo "Building frontend for runtime..."
-    build_frontend
-    echo "Syncing frontend build to backend..."
-    rm -rf "$BACKEND_DIR/dist"
-    mkdir -p "$BACKEND_DIR/dist"
-    cp -r "$FRONTEND_DIR/build/"* "$BACKEND_DIR/dist/"
+    echo "=== Cleaning build output ==="
+    clean
 
-    echo "Ensuring server certificates exist..."
+    echo "=== Building backend ==="
+    build_backend
+
+    echo "=== Packaging artifacts ==="
+    package
+
+    echo "=== Ensuring server certificates exist ==="
     if [[ ! -f "$BACKEND_DIR/$SECURITY_DIR/server.crt" || ! -f "$BACKEND_DIR/$SECURITY_DIR/server.key" ]]; then
         mkdir -p "$BACKEND_DIR/$SECURITY_DIR"
-
         echo "Generating SSL certificates..."
         OPENSSL_ERR=$(
             openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
@@ -116,8 +112,33 @@ function run() {
         echo "Certificates already exist."
     fi
 
-    echo "Running application..."
-    go run -C "$BACKEND_DIR" .
+    # Kill known ports
+    function kill_port() {
+        local port=$1
+        lsof -ti tcp:$port | xargs kill -9 2>/dev/null || true
+    }
+
+    kill_port $FRONTEND_PORT
+    kill_port $BACKEND_PORT
+
+    echo "=== Starting frontend on https://localhost:$FRONTEND_PORT ==="
+    FRONTEND_PORT=$FRONTEND_PORT pnpm --filter gate start &
+    FRONTEND_PID=$!
+
+    echo "=== Starting backend on https://localhost:$BACKEND_PORT ==="
+    BACKEND_PORT=$BACKEND_PORT go run -C "$BACKEND_DIR" . &
+    BACKEND_PID=$!
+
+    echo ""
+    echo "🚀 Servers running:"
+    echo "👉 Frontend: https://localhost:$FRONTEND_PORT"
+    echo "👉 Backend : https://localhost:$BACKEND_PORT"
+    echo "Press Ctrl+C to stop."
+
+    trap 'echo -e "\nStopping servers..."; kill $FRONTEND_PID $BACKEND_PID; exit' SIGINT
+
+    wait $FRONTEND_PID
+    wait $BACKEND_PID
 }
 
 case "$1" in
@@ -126,7 +147,6 @@ case "$1" in
         ;;
     build)
         build_backend
-        build_frontend
         package
         ;;
     test)

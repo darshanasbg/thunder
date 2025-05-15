@@ -1,6 +1,7 @@
-# ⚡ WSO2 Thunder — Identity Management
+# WSO2 Thunder ⚡
+### The Lighting Fast Identity Management Suite
 
-**Thunder** is a modern, identity management service by WSO2. It empowers you to design tailored login, registration, and recovery flows using a flexible identity flow designer.
+**Project Thunder** is a modern, identity management service by WSO2. It empowers you to design tailored login, registration, and recovery flows using a flexible identity flow designer.
 
 Thunder secures users, applications, services, and AI agents by managing their identities and offering a complete suite of supporting capabilities.
 
@@ -28,7 +29,7 @@ Designed for extensibility, scalability, and seamless containerized deployment, 
 - Go 1.23+
 - cURL
 - Node.js 14+
-- React 19+
+- PNPM 10+
 
 ---
 
@@ -121,6 +122,32 @@ curl -k -X POST https://localhost:8090/oauth2/token \
 
 ---
 
+#### 2️⃣ Try Out with the Sample React App
+
+- Create a file `.env` in the path `samples/apps/oauth/` and add below values
+
+  ```
+  VITE_REACT_APP_SERVER_AUTHENTICATION_ENDPOINT=https://localhost:8090/oauth2/authorize
+  VITE_REACT_APP_SERVER_TOKEN_ENDPOINT=https://localhost:8090/oauth2/token
+  VITE_REACT_APP_CLIENT_ID=client123
+  VITE_REACT_APP_CLIENT_SECRET=secret123
+  VITE_REACT_APP_REDIRECT_URI=https://localhost:3000
+  VITE_REACT_APP_SCOPE=openid
+  ```
+
+- And run this command
+
+  ```bash
+  pnpm oauth-sample
+  ```
+
+- Enter the following credentials:
+
+  - **Username:** `thor`
+  - **Password:** `thor123`
+
+    **Note:** The credentials can be configured in the `repository/conf/deployment.yaml` file under the `user_store` section.
+
 ## 🧪 Running Integration Tests
 
 Building the product with `make all` will run the integration tests by default. However if you want to run the tests manually, follow the steps below.
@@ -200,7 +227,14 @@ database:
 ### ▶️ Step 4: Run the Product
 
    ```bash
-   make run
+   pnpm start
    ```
 
 The product will now use the PostgreSQL database for its operations.
+
+## License
+
+Licenses this source under the Apache License, Version 2.0 ([LICENSE](LICENSE)), You may not use this file except in compliance with the License.
+
+---------------------------------------------------------------------------
+(c) Copyright 2025 WSO2 LLC.

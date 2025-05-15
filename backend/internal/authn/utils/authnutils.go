@@ -32,10 +32,10 @@ import (
 
 // GetLoginPageRedirectURI returns the login page URL with the given query parameters.
 func GetLoginPageRedirectURI(queryParams map[string]string) (string, error) {
-	serverConfig := config.GetThunderRuntime().Config.Server
+	gateClientConfig := config.GetThunderRuntime().Config.GateClient
 	loginPageURL := (&url.URL{
 		Scheme: "https",
-		Host:   fmt.Sprintf("%s:%d", serverConfig.Hostname, serverConfig.Port),
+		Host:   fmt.Sprintf("%s:%d", gateClientConfig.Hostname, gateClientConfig.Port),
 		Path:   "login",
 	}).String()
 
@@ -44,11 +44,11 @@ func GetLoginPageRedirectURI(queryParams map[string]string) (string, error) {
 
 // GetErrorPageURL returns the server error page URL.
 func GetErrorPageURL(queryParams map[string]string) (string, error) {
-	serverConfig := config.GetThunderRuntime().Config.Server
+	gateClientConfig := config.GetThunderRuntime().Config.GateClient
 	errorPageURL := (&url.URL{
 		Scheme: "https",
-		Host:   fmt.Sprintf("%s:%d", serverConfig.Hostname, serverConfig.Port),
-		Path:   "oauth2_error",
+		Host:   fmt.Sprintf("%s:%d", gateClientConfig.Hostname, gateClientConfig.Port),
+		Path:   "error",
 	}).String()
 
 	return utils.GetURIWithQueryParams(errorPageURL, queryParams)

@@ -21,10 +21,6 @@ VERSION_FILE=version.txt
 VERSION=$(shell cat $(VERSION_FILE))
 BINARY_NAME=thunder
 
-# Directories
-FRONTEND_DIR=frontend/loginportal
-BACKEND_DIR=backend/cmd/server
-
 # Tools
 PROJECT_DIR := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))/backend
 PROJECT_BIN_DIR := $(PROJECT_DIR)/bin

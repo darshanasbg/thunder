@@ -50,7 +50,7 @@ func main() {
 	}
 
 	// Initialize the multiplexer and register services.
-	mux := initMultiplexer(logger, thunderHome)
+	mux := initMultiplexer(logger)
 	if mux == nil {
 		logger.Fatal("Failed to initialize multiplexer")
 	}
@@ -103,7 +103,7 @@ func initThunderConfigurations(logger *log.Logger, thunderHome string) *config.C
 }
 
 // initMultiplexer initializes the HTTP multiplexer and registers the services.
-func initMultiplexer(logger *log.Logger, thunderHome string) *http.ServeMux {
+func initMultiplexer(logger *log.Logger) *http.ServeMux {
 	mux := http.NewServeMux()
 	serviceManager := managers.NewServiceManager(mux)
 
@@ -112,9 +112,6 @@ func initMultiplexer(logger *log.Logger, thunderHome string) *http.ServeMux {
 	if err != nil {
 		logger.Fatal("Failed to register the services", log.Error(err))
 	}
-
-	// Register static frontend assets.
-	registerFrontendAssets(logger, mux, thunderHome)
 
 	return mux
 }
@@ -135,7 +132,7 @@ func startServer(logger *log.Logger, cfg *config.Config, mux *http.ServeMux, thu
 		logger.Fatal("Failed to start TLS listener", log.Error(err))
 	}
 
-	logger.Info("WSO2 Thunder started...", log.String("address", serverAddr))
+	logger.Info("WSO2 Thunder server started...", log.String("address", serverAddr))
 
 	server := &http.Server{
 		Handler:           mux,
@@ -145,35 +142,4 @@ func startServer(logger *log.Logger, cfg *config.Config, mux *http.ServeMux, thu
 	if err := server.Serve(ln); err != nil {
 		logger.Fatal("Failed to serve requests", log.Error(err))
 	}
-}
-
-// registerFrontendAssets registers the frontend React app's static file handler.
-func registerFrontendAssets(logger *log.Logger, mux *http.ServeMux, thunderHome string) {
-	frontendPath := path.Join(thunderHome, "dist")
-
-	// Check if the frontend build directory exists
-	if _, err := os.Stat(frontendPath); os.IsNotExist(err) {
-		logger.Warn("Frontend build directory not found, skipping static file handler registration",
-			log.String("path", frontendPath))
-		return
-	}
-
-	fs := http.FileServer(http.Dir(frontendPath))
-
-	// Serve static files (e.g., JS, CSS)
-	mux.Handle("/static/", fs)
-	mux.Handle("/favicon.ico", fs)
-	mux.Handle("/manifest.json", fs)
-
-	// Serve index.html for all other frontend routes
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Only serve index.html for GET requests
-		if r.Method != http.MethodGet {
-			http.NotFound(w, r)
-			return
-		}
-
-		indexPath := path.Join(frontendPath, "index.html")
-		http.ServeFile(w, r, indexPath)
-	})
 }
