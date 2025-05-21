@@ -26,6 +26,7 @@ PRODUCT_FOLDER=${BINARY_NAME}-${VERSION}
 # Server ports
 FRONTEND_PORT=9090
 BACKEND_PORT=8090
+SAMPLE_PORT=3000
 
 # Directories
 OUTPUT_DIR=target
@@ -149,24 +150,30 @@ function run() {
 
     pnpm --filter gate build
 
-    echo "=== Starting frontend on https://localhost:$FRONTEND_PORT ==="
+    echo "=== Starting Thunder backend on https://localhost:$BACKEND_PORT ==="
+    BACKEND_PORT=$BACKEND_PORT go run -C "$BACKEND_DIR" . &
+    BACKEND_PID=$!
+
+    echo "=== Starting Thunder frontend on https://localhost:$FRONTEND_PORT ==="
     FRONTEND_PORT=$FRONTEND_PORT pnpm --filter gate start &
     FRONTEND_PID=$!
 
-    echo "=== Starting backend on https://localhost:$BACKEND_PORT ==="
-    BACKEND_PORT=$BACKEND_PORT go run -C "$BACKEND_DIR" . &
-    BACKEND_PID=$!
+    echo "=== Starting Thunder sample on https://localhost:$SAMPLE_PORT ==="
+    SAMPLE_PORT=$SAMPLE_PORT pnpm --filter oauth start &
+    SAMPLE_PID=$!
 
     echo ""
     echo "🚀 Servers running:"
     echo "👉 Frontend: https://localhost:$FRONTEND_PORT"
     echo "👉 Backend : https://localhost:$BACKEND_PORT"
+    echo "👉 Sample : https://localhost:$SAMPLE_PORT"
     echo "Press Ctrl+C to stop."
 
     trap 'echo -e "\nStopping servers..."; kill $FRONTEND_PID $BACKEND_PID; exit' SIGINT
 
     wait $FRONTEND_PID
     wait $BACKEND_PID
+    wait $SAMPLE_PID
 }
 
 case "$1" in
