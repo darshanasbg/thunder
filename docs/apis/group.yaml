@@ -1,0 +1,238 @@
+openapi: 3.0.3
+info:
+  title: Group Management API
+  version: 1.0.0
+  description: This API is used to manage groups.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+tags:
+  - name: groups
+    description: Operations related to group management
+
+paths:
+  /groups:
+    get:
+      tags:
+        - groups
+      summary: List all groups
+      description: Optionally filter by parent_id to get child groups
+      parameters:
+        - in: query
+          name: parent_id
+          schema:
+            type: string
+            format: uuid
+          description: Filter to get immediate children of the specified group
+      responses:
+        '200':
+          description: List of groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+              example:
+                - id: "g1"
+                  name: "Engineering"
+                  description: "Engineering group"
+                  parent_id: null
+                  user_ids: ["u1", "u2"]
+                - id: "g2"
+                  name: "Platform"
+                  description: "Platform team"
+                  parent_id: "g1"
+                  user_ids: ["u3"]
+
+    post:
+      tags:
+        - groups
+      summary: Create a new group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupRequest'
+            example:
+              name: "Engineering"
+              description: "Engineering group"
+              parent_id: null
+              user_ids: ["u1", "u2"]
+      responses:
+        '201':
+          description: Group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+              example:
+                id: "g1"
+                name: "Engineering"
+                description: "Engineering group"
+                parent_id: null
+                user_ids: ["u1", "u2"]
+
+  /groups/{id}:
+    get:
+      tags:
+        - groups
+      summary: Get a group by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Group details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+              example:
+                id: "g1"
+                name: "Engineering"
+                description: "Engineering group"
+                parent_id: null
+                user_ids: ["u1", "u2"]
+        '404':
+          description: Group not found
+
+    put:
+      tags:
+        - groups
+      summary: Update a group by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGroupRequest'
+            example:
+              name: "Engineering Team"
+              description: "Updated description"
+              parent_id: null
+              user_ids: ["u1", "u2", "u3"]
+      responses:
+        '200':
+          description: Group updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+              example:
+                id: "g1"
+                name: "Engineering Team"
+                description: "Updated description"
+                parent_id: null
+                user_ids: ["u1", "u2", "u3"]
+
+    delete:
+      tags:
+        - groups
+      summary: Delete a group by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Group deleted
+        '409':
+          description: Cannot delete group with child groups
+
+  /groups/{id}/descendants:
+    get:
+      tags:
+        - groups
+      summary: Get all descendant groups recursively
+      description: Returns the full nested group hierarchy starting from the given group
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of descendant groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+              example:
+                - id: "g2"
+                  name: "Platform"
+                  description: "Platform team"
+                  parent_id: "g1"
+                  user_ids: ["u3"]
+                - id: "g3"
+                  name: "Frontend"
+                  description: "Frontend team"
+                  parent_id: "g2"
+                  user_ids: ["u4"]
+        '404':
+          description: Group not found
+
+components:
+  schemas:
+    Group:
+      type: object
+      required: [id, name, user_ids]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        user_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    CreateGroupRequest:
+      type: object
+      required: [name, user_ids]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        user_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateGroupRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateGroupRequest'
