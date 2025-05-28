@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: OrganizationUnit Management API
+  version: 0.1.0
+
+tags:
+  - name: organization-units
+    description: Operations related to organization unit management
+
+paths:
+  /organization-units:
+    get:
+      tags: [organization-units]
+      summary: List all organization units
+      parameters:
+        - in: query
+          name: parent_id
+          schema:
+            type: string
+            format: uuid
+          description: Filter to get child units of a specific parent
+      responses:
+        '200':
+          description: List of organization units
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationUnitWithChildren'
+              example:
+                - id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
+                  name: "Engineering"
+                  description: "Engineering OU"
+                  parent: null
+                  users:
+                    - "3f9d5c8e-3c56-4f09-a1db-bb3d5e3f4b5d"
+                    - "9f4bc2ee-8d1e-4e21-a3b4-17d9b612e320"
+                    - "20eb225a-e8c3-4ccf-9d47-b659e26014d7"
+                  groups:
+                    - "c2a4f62d-7c79-46f2-b2de-8e8cb4f1c456"
+                    - "8a8e4fa2-2e55-478d-bf0f-4a2ddaf9ee7d"
+                  sub-organization-units:
+                    - "6b59f277-fd79-40b1-afca-dce75d3709f7"
+                - id: "b7c40de6-95cd-4c45-8725-9c7cb5b9cafd"
+                  name: "Sales"
+                  description: "Sales OU"
+                  parent: null
+                  users:
+                    - "ee1a9b13-4a1a-4ad1-b72c-836946be5378"
+                    - "f4a3c9b8-8104-4c13-a9ab-f0e7036ee2b5"
+                  groups:
+                    - "5fb39e2e-2de4-42b7-8456-5b18bfb7728d"
+                  sub-organization-units: []
+
+    post:
+      tags: [organization-units]
+      summary: Create a new organization unit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationUnitRequest'
+            examples:
+              root-ou:
+                summary: Root OU
+                value:
+                  name: "Engineering"
+                  description: "Engineering OU"
+                  parent: null
+              nested-ou:
+                summary: Nested OU
+                value:
+                  name: "Frontend Team"
+                  description: "Handles UI/UX work"
+                  parent: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
+      responses:
+        '201':
+          description: Organization unit created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationUnit'
+              examples:
+                root-ou:
+                  summary: Root OU
+                  value:
+                    id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
+                    name: "Engineering"
+                    description: "Engineering OU"
+                    parent: null
+                nested-ou:
+                  summary: Nested OU
+                  value:
+                    id: "4d4cb83a-9bb8-4fd7-970e-36b65f9c8ea4"
+                    name: "Frontend Team"
+                    description: "Handles UI/UX work"
+                    parent: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
+
+  /organization-units/{id}:
+    get:
+      tags: [organization-units]
+      summary: Get a specific organization unit
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Organization unit details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationUnitWithChildren'
+              example:
+                id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
+                name: "Engineering Team"
+                description: "Engineering OU that handles all engineering tasks"
+                parent: null
+                users:
+                  - "3f9d5c8e-3c56-4f09-a1db-bb3d5e3f4b5d"
+                  - "9f4bc2ee-8d1e-4e21-a3b4-17d9b612e320"
+                  - "20eb225a-e8c3-4ccf-9d47-b659e26014d7"
+                groups:
+                  - "c2a4f62d-7c79-46f2-b2de-8e8cb4f1c456"
+                  - "8a8e4fa2-2e55-478d-bf0f-4a2ddaf9ee7d"
+                sub-organization-units:
+                  - "6b59f277-fd79-40b1-afca-dce75d3709f7"
+        '404':
+          description: Organization unit not found
+
+    put:
+      tags: [organization-units]
+      summary: Update an organization unit
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrganizationUnitRequest'
+            example:
+              name: "Engineering Team"
+              description: "Engineering OU that handles all engineering tasks"
+              parent: null
+      responses:
+        '200':
+          description: Organization unit updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationUnitWithChildren'
+              example:
+                id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
+                name: "Engineering Team"
+                description: "Engineering OU that handles all engineering tasks"
+                parent: null
+                users:
+                  - "3f9d5c8e-3c56-4f09-a1db-bb3d5e3f4b5d"
+                  - "9f4bc2ee-8d1e-4e21-a3b4-17d9b612e320"
+                  - "20eb225a-e8c3-4ccf-9d47-b659e26014d7"
+                groups:
+                  - "c2a4f62d-7c79-46f2-b2de-8e8cb4f1c456"
+                  - "8a8e4fa2-2e55-478d-bf0f-4a2ddaf9ee7d"
+                sub-organization-units:
+                  - "6b59f277-fd79-40b1-afca-dce75d3709f7"
+
+    delete:
+      tags: [organization-units]
+      summary: Delete an organization unit
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Organization unit deleted
+        '409':
+          description: Cannot delete organization unit with children
+
+components:
+  schemas:
+    OrganizationUnit:
+      type: object
+      required: [id, name, users, groups]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        users:
+          type: array
+          items:
+            type: string
+            format: uuid
+        groups:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    OrganizationUnitWithChildren:
+      allOf:
+        - $ref: '#/components/schemas/OrganizationUnit'
+      properties:
+        sub-organization-units:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    CreateOrganizationUnitRequest:
+      type: object
+      required: [name, users, groups]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        users:
+          type: array
+          items:
+            type: string
+            format: uuid
+        groups:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateOrganizationUnitRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateOrganizationUnitRequest'
