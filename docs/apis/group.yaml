@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Group Management API
-  version: 1.0.0
+  version: 0.1.0
   description: This API is used to manage groups.
   license:
     name: Apache 2.0
@@ -16,15 +16,21 @@ paths:
     get:
       tags:
         - groups
-      summary: List all groups
-      description: Optionally filter by parent_id to get child groups
+      summary: List groups
       parameters:
         - in: query
-          name: parent_id
+          name: parent
           schema:
             type: string
             format: uuid
           description: Filter to get immediate children of the specified group
+          examples:
+            root-groups:
+              summary: Listing root groups
+              value: null
+            nested-groups:
+              summary: List groups for a specific parent
+              value: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
       responses:
         '200':
           description: List of groups
@@ -33,18 +39,40 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Group'
-              example:
-                - id: "g1"
-                  name: "Engineering"
-                  description: "Engineering group"
-                  parent_id: null
-                  user_ids: ["u1", "u2"]
-                - id: "g2"
-                  name: "Platform"
-                  description: "Platform team"
-                  parent_id: "g1"
-                  user_ids: ["u3"]
+                  $ref: '#/components/schemas/GroupBasic'
+              examples:
+                root-groups:
+                  summary: List root groups
+                  value:
+                    - id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                      name: "Sports"
+                      description: "Sports group"
+                      parent: null
+                      users:
+                        - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
+                        - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
+                      groups:
+                        - "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
+                    - id: "257e528f-eb24-48b6-884d-20460e190957"
+                      name: "Managers"
+                      description: "Manager group"
+                      parent: null
+                      users:
+                        - "28c2e8f9-878d-423b-9e03-bad8c6d3fe8f"
+                        - "c685f5a2-9ec7-44e1-a0b8-814b65d6857b"
+                        - "f3678f40-e074-451c-acc2-31de500cd939"
+                      groups:
+                        - "e4888068-7eea-4a00-8142-07b88a725139"
+                        - "3057ff4e-23e9-4afe-9faa-d7e9b7c85699"
+                nested-groups:
+                  summary: List groups for a specific parent
+                  value:
+                    - id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
+                      name: "Hockey"
+                      description: "Hockey group"
+                      parent: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                      users:
+                        - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
 
     post:
       tags:
@@ -56,11 +84,24 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateGroupRequest'
-            example:
-              name: "Engineering"
-              description: "Engineering group"
-              parent_id: null
-              user_ids: ["u1", "u2"]
+            examples:
+              root-group:
+                summary: Root group
+                value:
+                  name: "Sports"
+                  description: "Sports group"
+                  parent: null
+                  users:
+                    - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
+                    - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
+              nested-group:
+                summary: Nested group
+                value:
+                  name: "Hockey"
+                  description: "Hockey group"
+                  parent: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  users:
+                    - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
       responses:
         '201':
           description: Group created
@@ -68,18 +109,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Group'
-              example:
-                id: "g1"
-                name: "Engineering"
-                description: "Engineering group"
-                parent_id: null
-                user_ids: ["u1", "u2"]
+              examples:
+                root-group:
+                  summary: Root group
+                  value:
+                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    name: "Sports"
+                    description: "Sports group"
+                    parent: null
+                    users:
+                      - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
+                      - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
+                nested-group:
+                  summary: Nested group
+                  value:
+                    id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
+                    name: "Hockey"
+                    description: "Hockey group"
+                    parent: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    users:
+                      - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
 
   /groups/{id}:
     get:
       tags:
         - groups
-      summary: Get a group by ID
+      summary: Get a group by id
       parameters:
         - in: path
           name: id
@@ -95,18 +150,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/Group'
               example:
-                id: "g1"
-                name: "Engineering"
-                description: "Engineering group"
-                parent_id: null
-                user_ids: ["u1", "u2"]
+                id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                name: "Sports"
+                description: "Sports group"
+                parent: null
+                users:
+                  - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
+                  - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
+                groups:
+                  - "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
         '404':
           description: Group not found
 
     put:
       tags:
         - groups
-      summary: Update a group by ID
+      summary: Update a group by id
       parameters:
         - in: path
           name: id
@@ -121,10 +180,15 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateGroupRequest'
             example:
-              name: "Engineering Team"
-              description: "Updated description"
-              parent_id: null
-              user_ids: ["u1", "u2", "u3"]
+              name: "Activities"
+              description: "Activities group"
+              parent: null
+              users:
+                - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
+                - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
+                - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
+              groups:
+                - "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
       responses:
         '200':
           description: Group updated
@@ -133,16 +197,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/Group'
               example:
-                id: "g1"
-                name: "Engineering Team"
-                description: "Updated description"
-                parent_id: null
-                user_ids: ["u1", "u2", "u3"]
+                id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                name: "Activities"
+                description: "Activities group"
+                parent: null
+                users:
+                  - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
+                  - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
+                  - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
+                groups:
+                  - "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
 
     delete:
       tags:
         - groups
-      summary: Delete a group by ID
+      summary: Delete a group by id
       parameters:
         - in: path
           name: id
@@ -179,24 +248,35 @@ paths:
                 items:
                   $ref: '#/components/schemas/Group'
               example:
-                - id: "g2"
+                - id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
                   name: "Platform"
                   description: "Platform team"
-                  parent_id: "g1"
-                  user_ids: ["u3"]
-                - id: "g3"
+                  parent: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  users: ["2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"]
+                - id: "a0a7c2cb-088f-4c33-9047-e60b55adf7a1"
                   name: "Frontend"
                   description: "Frontend team"
-                  parent_id: "g2"
-                  user_ids: ["u4"]
+                  parent: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
+                  users: ["bff43b1e-f7a6-4ed3-93ad-932b76374ed1"]
         '404':
           description: Group not found
 
 components:
   schemas:
-    Group:
+    Parent:
       type: object
-      required: [id, name, user_ids]
+      properties:
+        type:
+          type: string
+          enum:
+            - group
+            - organization-unit
+        id:
+          type: string
+          format: uuid
+    GroupBasic:
+      type: object
+      required: [id, name, parent, groups]
       properties:
         id:
           type: string
@@ -205,11 +285,20 @@ components:
           type: string
         description:
           type: string
-        parent_id:
-          type: string
-          format: uuid
           nullable: true
-        user_ids:
+        parent:
+          type: object
+          $ref: '#/components/schemas/Parent'
+        sub-groups:
+          type: array
+          items:
+            type: string
+            format: uuid
+    Group:
+      allOf:
+        - $ref: '#/components/schemas/GroupBasic'
+      properties:
+        users:
           type: array
           items:
             type: string
@@ -217,17 +306,17 @@ components:
 
     CreateGroupRequest:
       type: object
-      required: [name, user_ids]
+      required: [name, parent]
       properties:
         name:
           type: string
         description:
           type: string
-        parent_id:
+        parent:
           type: string
           format: uuid
           nullable: true
-        user_ids:
+        users:
           type: array
           items:
             type: string
