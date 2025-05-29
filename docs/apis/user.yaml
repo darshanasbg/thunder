@@ -1,7 +1,131 @@
 openapi: 3.0.3
+info:
+  title: User Management API
+  version: 0.1.0
+  description: This API is used to manage users.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+tags:
+  - name: users
+    description: Operations related to user management
+paths:
+  /users:
+    get:
+      tags:
+        - users
+      summary: List users
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+    post:
+      tags:
+        - users
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+        '409':
+          description: Conflict
+        '500':
+          description: Internal server error
+
+  /users/{id}:
+    get:
+      tags:
+        - users
+      summary: Get a user by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+    put:
+      tags:
+        - users
+      summary: Update a user by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+    delete:
+      tags:
+        - users
+      summary: Delete a user by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deleted
+        '500':
+          description: Internal server error
+
 components:
   schemas:
-    model.User:
+    User:
       type: object
       properties:
         id:
@@ -14,183 +138,3 @@ components:
           type: array
           items:
             type: object
-info:
-  contact: {}
-  description: This API is used to manage users.
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  title: User Management API
-  version: "1.0"
-paths:
-  /users:
-    get:
-      description: Retrieve a list of all users.
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/model.User'
-        "400":
-          description: 'Bad Request: The request body is malformed or contains invalid data.'
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: 'Internal Server Error: An unexpected error occurred while processing the request.'
-          content:
-            application/json:
-              schema:
-                type: string
-      summary: List users
-      tags:
-      - users
-    post:
-      description: Creates a new user with the provided details.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/model.User'
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/model.User'
-        "400":
-          description: 'Bad Request: The request body is malformed or contains invalid data.'
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: 'Internal Server Error: An unexpected error occurred while processing the request.'
-          content:
-            application/json:
-              schema:
-                type: string
-      summary: Create an user
-      tags:
-      - users
-  /users/{id}:
-    delete:
-      description: Delete an user using its ID.
-      parameters:
-      - name: id
-        in: path
-        description: User ID
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: 'Bad Request: The request body is malformed or contains invalid data.'
-          content:
-            application/json:
-              schema:
-                type: string
-        "404":
-          description: 'Not Found: The user with the specified ID does not exist.'
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: 'Internal Server Error: An unexpected error occurred while processing the request.'
-          content:
-            application/json:
-              schema:
-                type: string
-      summary: Delete an user
-      tags:
-      - users
-    get:
-      description: Retrieve a specific user using its ID.
-      parameters:
-      - name: id
-        in: path
-        description: User ID
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/model.User'
-        "400":
-          description: 'Bad Request: The request body is malformed or contains invalid data.'
-          content:
-            application/json:
-              schema:
-                type: string
-        "404":
-          description: 'Not Found: The user with the specified ID does not exist.'
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: 'Internal Server Error: An unexpected error occurred while processing the request.'
-          content:
-            application/json:
-              schema:
-                type: string
-      summary: Get an user by ID
-      tags:
-      - users
-    put:
-      description: Update the details of an existing user.
-      parameters:
-      - name: id
-        in: path
-        description: User ID
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/model.User'
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/model.User'
-        "400":
-          description: 'Bad Request: The request body is malformed or contains invalid data.'
-          content:
-            application/json:
-              schema:
-                type: string
-        "404":
-          description: 'Not Found: The user with the specified ID does not exist.'
-          content:
-            application/json:
-              schema:
-                type: string
-        "500":
-          description: 'Internal Server Error: An unexpected error occurred while processing the request.'
-          content:
-            application/json:
-              schema:
-                type: string
-      summary: Update an user
-      tags:
-      - users
