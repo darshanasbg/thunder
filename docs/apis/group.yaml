@@ -20,17 +20,12 @@ paths:
       parameters:
         - in: query
           name: parent
+          description: Filter to get immediate children of the specified group
+          required: false
           schema:
             type: string
             format: uuid
-          description: Filter to get immediate children of the specified group
-          examples:
-            root-groups:
-              summary: Listing root groups
-              value: null
-            nested-groups:
-              summary: List groups for a specific parent
-              value: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
       responses:
         '200':
           description: List of groups
@@ -42,12 +37,14 @@ paths:
                   $ref: '#/components/schemas/GroupBasic'
               examples:
                 root-groups:
-                  summary: List root groups
+                  summary: List root groups (without parent param)
                   value:
                     - id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                       name: "Sports"
                       description: "Sports group"
-                      parent: null
+                      parent:
+                        type: "organization-unit"
+                        id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                       users:
                         - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
                         - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
@@ -56,7 +53,9 @@ paths:
                     - id: "257e528f-eb24-48b6-884d-20460e190957"
                       name: "Managers"
                       description: "Manager group"
-                      parent: null
+                      parent:
+                        type: "organization-unit"
+                        id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                       users:
                         - "28c2e8f9-878d-423b-9e03-bad8c6d3fe8f"
                         - "c685f5a2-9ec7-44e1-a0b8-814b65d6857b"
@@ -65,12 +64,14 @@ paths:
                         - "e4888068-7eea-4a00-8142-07b88a725139"
                         - "3057ff4e-23e9-4afe-9faa-d7e9b7c85699"
                 nested-groups:
-                  summary: List groups for a specific parent
+                  summary: List groups for a specific parent (with parent param)
                   value:
                     - id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
                       name: "Hockey"
                       description: "Hockey group"
-                      parent: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                      parent:
+                        type: "organization-unit"
+                        id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                       users:
                         - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
 
@@ -90,7 +91,9 @@ paths:
                 value:
                   name: "Sports"
                   description: "Sports group"
-                  parent: null
+                  parent:
+                    type: "organization-unit"
+                    id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                   users:
                     - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
                     - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
@@ -99,7 +102,9 @@ paths:
                 value:
                   name: "Hockey"
                   description: "Hockey group"
-                  parent: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  parent:
+                    type: "group"
+                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                   users:
                     - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
       responses:
@@ -116,7 +121,9 @@ paths:
                     id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                     name: "Sports"
                     description: "Sports group"
-                    parent: null
+                    parent:
+                      type: "organization-unit"
+                      id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                     users:
                       - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
                       - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
@@ -126,7 +133,9 @@ paths:
                     id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
                     name: "Hockey"
                     description: "Hockey group"
-                    parent: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    parent:
+                      type: "group"
+                      id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                     users:
                       - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
 
@@ -153,7 +162,9 @@ paths:
                 id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                 name: "Sports"
                 description: "Sports group"
-                parent: null
+                parent:
+                  type: "organization-unit"
+                  id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                 users:
                   - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
                   - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
@@ -182,7 +193,9 @@ paths:
             example:
               name: "Activities"
               description: "Activities group"
-              parent: null
+              parent:
+                type: "organization-unit"
+                id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
               users:
                 - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
                 - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
@@ -200,7 +213,9 @@ paths:
                 id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                 name: "Activities"
                 description: "Activities group"
-                parent: null
+                parent:
+                  type: "organization-unit"
+                  id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                 users:
                   - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
                   - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
@@ -224,42 +239,6 @@ paths:
           description: Group deleted
         '409':
           description: Cannot delete group with child groups
-
-  /groups/{id}/descendants:
-    get:
-      tags:
-        - groups
-      summary: Get all descendant groups recursively
-      description: Returns the full nested group hierarchy starting from the given group
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: List of descendant groups
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Group'
-              example:
-                - id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-                  name: "Platform"
-                  description: "Platform team"
-                  parent: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                  users: ["2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"]
-                - id: "a0a7c2cb-088f-4c33-9047-e60b55adf7a1"
-                  name: "Frontend"
-                  description: "Frontend team"
-                  parent: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-                  users: ["bff43b1e-f7a6-4ed3-93ad-932b76374ed1"]
-        '404':
-          description: Group not found
 
 components:
   schemas:
@@ -287,7 +266,6 @@ components:
           type: string
           nullable: true
         parent:
-          type: object
           $ref: '#/components/schemas/Parent'
         sub-groups:
           type: array
@@ -313,9 +291,7 @@ components:
         description:
           type: string
         parent:
-          type: string
-          format: uuid
-          nullable: true
+          $ref: '#/components/schemas/Parent'
         users:
           type: array
           items:
