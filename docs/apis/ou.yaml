@@ -58,6 +58,13 @@ paths:
                       description: "Handles UI/UX work"
                       parent: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
                       sub-organization-units: []
+                    - id: "4d4cb83a-9bb8-4fd7-970e-36b65f9c8ea4"
+        '400':
+          description: Bad request
+        '404':
+          description: Parent organization unit not found
+        '500':
+          description: Internal server error
 
     post:
       tags:
@@ -104,12 +111,18 @@ paths:
                     name: "Frontend Team"
                     description: "Handles UI/UX work"
                     parent: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
+        '400':
+          description: Bad request
+        '409':
+          description: A organization unit with the same name exists under the same parent
+        '500':
+          description: Internal server error
 
   /organization-units/{id}:
     get:
       tags:
         - organization-units
-      summary: Get a organization unit by id
+      summary: Get an organization unit by id
       parameters:
         - in: path
           name: id
@@ -140,6 +153,8 @@ paths:
                   - "6b59f277-fd79-40b1-afca-dce75d3709f7"
         '404':
           description: Organization unit not found
+        '500':
+          description: Internal server error
 
     put:
       tags:
@@ -183,6 +198,14 @@ paths:
                   - "8a8e4fa2-2e55-478d-bf0f-4a2ddaf9ee7d"
                 sub-organization-units:
                   - "6b59f277-fd79-40b1-afca-dce75d3709f7"
+        '400':
+          description: Bad request
+        '404':
+          description: Organization unit not found
+        '409':
+          description: A organization unit with the same name exists under the same parent
+        '500':
+          description: Internal server error
 
     delete:
       tags:
@@ -198,14 +221,16 @@ paths:
       responses:
         '204':
           description: Organization unit deleted
-        '409':
+        '400':
           description: Cannot delete organization unit with children
+        '500':
+          description: Internal server error
 
 components:
   schemas:
     OrganizationUnitBasic:
       type: object
-      required: [id, name, parent, sub-organization-units]
+      required: [id, name, parent, organization-units]
       properties:
         id:
           type: string
@@ -218,7 +243,7 @@ components:
           type: string
           format: uuid
           nullable: true
-        sub-organization-units:
+        organization-units:
           type: array
           items:
             type: string

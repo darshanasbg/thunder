@@ -74,6 +74,13 @@ paths:
                         id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                       users:
                         - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
+                      groups: []
+        '400':
+          description: Bad request
+        '404':
+          description: Parent group not found
+        '500':
+          description: Internal server error
 
     post:
       tags:
@@ -138,6 +145,12 @@ paths:
                       id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                     users:
                       - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
+        '400':
+          description: Bad request
+        '409':
+          description: A group with the same name exists under the same parent
+        '500':
+          description: Internal server error
 
   /groups/{id}:
     get:
@@ -172,6 +185,8 @@ paths:
                   - "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
         '404':
           description: Group not found
+        '500':
+          description: Internal server error
 
     put:
       tags:
@@ -222,6 +237,14 @@ paths:
                   - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
                 groups:
                   - "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
+        '400':
+          description: Bad request
+        '404':
+          description: Group not found
+        '409':
+          description: A group with the same name exists under the same parent
+        '500':
+          description: Internal server error
 
     delete:
       tags:
@@ -237,8 +260,10 @@ paths:
       responses:
         '204':
           description: Group deleted
-        '409':
+        '400':
           description: Cannot delete group with child groups
+        '500':
+          description: Internal server error
 
 components:
   schemas:
@@ -267,7 +292,7 @@ components:
           nullable: true
         parent:
           $ref: '#/components/schemas/Parent'
-        sub-groups:
+        groups:
           type: array
           items:
             type: string
