@@ -20,17 +20,12 @@ paths:
       parameters:
         - in: query
           name: parent
+          description: Filter to get immediate children of the specified organization unit
+          required: false
           schema:
             type: string
             format: uuid
-          description: Filter to get immediate children of the specified organization unit
-          examples:
-            all-ou-request:
-              summary: Listing root organization units
-              value: null
-            filtered-ou-request:
-              summary: List organization units for a specific parent
-              value: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
+            example: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
       responses:
         '200':
           description: List of organization units
@@ -41,8 +36,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/OrganizationUnitBasic'
               examples:
-                all-ou:
-                  summary: List root organization units
+                root-ous:
+                  summary: List root organization units (without parent param)
                   value:
                     - id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
                       name: "Engineering"
@@ -55,8 +50,8 @@ paths:
                       description: "Sales Unit"
                       parent: null
                       sub-organization-units: []
-                filtered-ou:
-                  summary: List organization units for a specific parent
+                nested-ous:
+                  summary: List organization units for a specific parent (with parent param)
                   value:
                     - id: "6b59f277-fd79-40b1-afca-dce75d3709f7"
                       name: "Frontend Team"
