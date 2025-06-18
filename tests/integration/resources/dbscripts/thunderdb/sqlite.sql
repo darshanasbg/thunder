@@ -1,13 +1,71 @@
+-- Table to store Organizations
+CREATE TABLE ORGANIZATION (
+    ID              INTEGER PRIMARY KEY AUTOINCREMENT,
+    ORGANIZATION_ID VARCHAR(36) UNIQUE NOT NULL,
+    NAME            TEXT               NOT NULL,
+    CREATED_AT      TEXT DEFAULT (datetime('now')),
+    UPDATED_AT      TEXT DEFAULT (datetime('now'))
+);
+
+-- Table to store Organization Units
+CREATE TABLE ORGANIZATION_UNIT (
+    ID           INTEGER PRIMARY KEY AUTOINCREMENT,
+    OU_ID        VARCHAR(36) UNIQUE NOT NULL,
+    PARENT_OU_ID VARCHAR(36),
+    NAME         TEXT               NOT NULL,
+    PATH         TEXT               NOT NULL,
+    CREATED_AT   TEXT DEFAULT (datetime('now')),
+    UPDATED_AT   TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (PARENT_OU_ID) REFERENCES ORGANIZATION_UNIT (OU_ID) ON DELETE CASCADE
+);
+
+-- Table to store Organization OU assignments
+CREATE TABLE ORGANIZATION_UNIT_ASSIGNMENT (
+    ID              INTEGER PRIMARY KEY AUTOINCREMENT,
+    ORGANIZATION_ID VARCHAR(36) NOT NULL,
+    OU_ID           VARCHAR(36) NOT NULL,
+    LABEL           TEXT        NOT NULL,
+    CREATED_AT      TEXT DEFAULT (datetime('now')),
+    UPDATED_AT      TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (ORGANIZATION_ID) REFERENCES ORGANIZATION (ORGANIZATION_ID) ON DELETE CASCADE,
+    FOREIGN KEY (OU_ID) REFERENCES ORGANIZATION_UNIT (OU_ID) ON DELETE CASCADE
+);
+
 -- Table to store Users
 CREATE TABLE USER (
-  ID         INTEGER PRIMARY KEY AUTOINCREMENT,
-  USER_ID    VARCHAR(36) UNIQUE NOT NULL,
-  OU_ID      VARCHAR(36)        NOT NULL,
-  TYPE       TEXT               NOT NULL,
-  ATTRIBUTES TEXT,
-  CREDENTIALS TEXT,
-  CREATED_AT TEXT DEFAULT (datetime('now')),
-  UPDATED_AT TEXT DEFAULT (datetime('now'))
+    ID          INTEGER PRIMARY KEY AUTOINCREMENT,
+    USER_ID     VARCHAR(36) UNIQUE NOT NULL,
+    OU_ID       VARCHAR(36)        NOT NULL,
+    TYPE        TEXT               NOT NULL,
+    ATTRIBUTES  TEXT,
+    CREDENTIALS TEXT,
+    CREATED_AT  TEXT DEFAULT (datetime('now')),
+    UPDATED_AT  TEXT DEFAULT (datetime('now'))
+);
+
+-- Table to store Groups with path enumeration
+CREATE TABLE "GROUP" (
+    ID              INTEGER PRIMARY KEY AUTOINCREMENT,
+    GROUP_ID        VARCHAR(36) UNIQUE NOT NULL,
+    PARENT_GROUP_ID VARCHAR(36),
+    OU_ID           VARCHAR(36)        NOT NULL,
+    NAME            TEXT               NOT NULL,
+    PATH            TEXT               NOT NULL,
+    CREATED_AT      TEXT DEFAULT (datetime('now')),
+    UPDATED_AT      TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (PARENT_GROUP_ID) REFERENCES "GROUP" (GROUP_ID) ON DELETE CASCADE,
+    FOREIGN KEY (OU_ID) REFERENCES ORGANIZATION_UNIT (OU_ID) ON DELETE CASCADE
+);
+
+-- Table to store Group-User memberships
+CREATE TABLE GROUP_USER_REFERENCE (
+    ID         INTEGER PRIMARY KEY AUTOINCREMENT,
+    GROUP_ID   VARCHAR(36) NOT NULL,
+    USER_ID    VARCHAR(36) NOT NULL,
+    CREATED_AT TEXT DEFAULT (datetime('now')),
+    UPDATED_AT TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (GROUP_ID) REFERENCES "GROUP" (GROUP_ID) ON DELETE CASCADE,
+    FOREIGN KEY (USER_ID) REFERENCES USER (USER_ID) ON DELETE CASCADE
 );
 
 -- Table to store basic service provider (app) details.
