@@ -216,7 +216,7 @@ func UpdateGroup(group model.Group) error {
 	}()
 
 	// Check for name conflicts (excluding current group)
-	err = checkGroupNameConflictForUpdate(dbClient, group.Name, group.Parent, group.ID, logger)
+	err = checkGroupNameConflict(dbClient, group.Name, group.Parent, group.ID, logger)
 	if err != nil {
 		return err
 	}
@@ -448,24 +448,24 @@ func checkGroupNameConflict(
 	excludeGroupID string,
 	logger *log.Logger,
 ) error {
-	var parentGroupID *string
-	var ouID string
-
-	if parent.Type == "group" {
-		parentGroupID = &parent.ID
-		// Get OU from parent group - simplified for now
-		ouID = parent.ID // This would need proper implementation
-	} else {
-		ouID = parent.ID
-	}
-
 	var results []map[string]interface{}
 	var err error
 
-	if excludeGroupID != "" {
-		results, err = dbClient.Query(QueryCheckGroupNameConflictForUpdate, name, parentGroupID, ouID, excludeGroupID)
+	// Use appropriate query based on parent type and whether this is an update operation
+	if parent.Type == model.ParentTypeGroup {
+		if excludeGroupID != "" {
+			results, err = dbClient.Query(QueryCheckGroupNameConflictForUpdate, name, parent.ID, excludeGroupID)
+		} else {
+			results, err = dbClient.Query(QueryCheckGroupNameConflict, name, parent.ID)
+		}
+	} else if parent.Type == model.ParentTypeOrganizationUnit {
+		if excludeGroupID != "" {
+			results, err = dbClient.Query(QueryCheckGroupNameConflictInOUForUpdate, name, parent.ID, excludeGroupID)
+		} else {
+			results, err = dbClient.Query(QueryCheckGroupNameConflictInOU, name, parent.ID)
+		}
 	} else {
-		results, err = dbClient.Query(QueryCheckGroupNameConflict, name, parentGroupID, ouID)
+		return fmt.Errorf("invalid parent type: %s", parent.Type)
 	}
 
 	if err != nil {
@@ -480,18 +480,6 @@ func checkGroupNameConflict(
 	}
 
 	return nil
-}
-
-// checkGroupNameConflictForUpdate checks if a group name conflicts with existing groups under
-// the same parent during an update.
-func checkGroupNameConflictForUpdate(
-	dbClient client.DBClientInterface,
-	name string,
-	parent model.Parent,
-	groupID string,
-	logger *log.Logger,
-) error {
-	return checkGroupNameConflict(dbClient, name, parent, groupID, logger)
 }
 
 // generateGroupPath generates the path for a group based on its name and parent.

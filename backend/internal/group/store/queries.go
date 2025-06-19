@@ -82,13 +82,25 @@ var (
 	// QueryCheckGroupNameConflict is the query to check if a group name conflicts under the same parent.
 	QueryCheckGroupNameConflict = dbmodel.DBQuery{
 		ID:    "GRQ-GROUP_MGT-10",
-		Query: `SELECT COUNT(*) as count FROM "GROUP" WHERE NAME = $1 AND PARENT_ID = $2 AND OU_ID = $3`,
+		Query: `SELECT COUNT(*) as count FROM "GROUP" WHERE NAME = $1 AND PARENT_ID = $2`,
 	}
 
 	// QueryCheckGroupNameConflictForUpdate is the query to check name conflict during update.
 	QueryCheckGroupNameConflictForUpdate = dbmodel.DBQuery{
+		ID:    "GRQ-GROUP_MGT-11",
+		Query: `SELECT COUNT(*) as count FROM "GROUP" WHERE NAME = $1 AND PARENT_ID = $2 AND GROUP_ID != $3`,
+	}
+
+	// QueryCheckGroupNameConflictInOU is the query to check if a group name conflicts within an organization unit.
+	QueryCheckGroupNameConflictInOU = dbmodel.DBQuery{
+		ID:    "GRQ-GROUP_MGT-12",
+		Query: `SELECT COUNT(*) as count FROM "GROUP" WHERE NAME = $1 AND OU_ID = $2 AND PARENT_ID IS NULL`,
+	}
+
+	// QueryCheckGroupNameConflictInOUForUpdate is the query to check name conflict in OU during update.
+	QueryCheckGroupNameConflictInOUForUpdate = dbmodel.DBQuery{
 		ID: "GRQ-GROUP_MGT-13",
-		Query: `SELECT COUNT(*) as count FROM "GROUP" WHERE NAME = $1 AND PARENT_ID = $2 ` +
-			`AND OU_ID = $3 AND GROUP_ID != $4`,
+		Query: `SELECT COUNT(*) as count FROM "GROUP" WHERE NAME = $1 AND OU_ID = $2 AND ` +
+			`PARENT_ID IS NULL AND GROUP_ID != $3`,
 	}
 )

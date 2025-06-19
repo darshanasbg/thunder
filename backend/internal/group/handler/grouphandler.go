@@ -77,7 +77,6 @@ func (gh *GroupHandler) HandleGroupPostRequest(w http.ResponseWriter, r *http.Re
 		} else if errors.Is(err, model.ErrParentNotFound) {
 			http.Error(w, "Bad Request: Parent group or organization unit not found.", http.StatusBadRequest)
 		} else if errors.Is(err, model.ErrInvalidRequest) {
-			// TODO: Check whether this case is present and needed
 			http.Error(w, "Bad Request: The request body is malformed or contains invalid data.", http.StatusBadRequest)
 		} else {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -156,12 +155,10 @@ func (gh *GroupHandler) HandleGroupPutRequest(w http.ResponseWriter, r *http.Req
 		if errors.Is(err, model.ErrGroupNotFound) {
 			http.Error(w, "Not Found: The group with the specified id does not exist.", http.StatusNotFound)
 		} else if errors.Is(err, model.ErrGroupNameConflict) {
-			// TODO: Check whether it exclude name validation when name is not changed
 			http.Error(w, "Conflict: A group with the new name exists under the same parent.", http.StatusConflict)
 		} else if errors.Is(err, model.ErrParentNotFound) {
 			http.Error(w, "Bad Request: Parent group or organization unit not found.", http.StatusBadRequest)
 		} else if errors.Is(err, model.ErrInvalidRequest) {
-			// TODO: Check whether this case is present and needed
 			http.Error(w, "Bad Request: The request body is malformed or contains invalid data.", http.StatusBadRequest)
 		} else {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
