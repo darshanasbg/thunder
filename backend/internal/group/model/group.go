@@ -47,9 +47,12 @@ type GroupBasic struct {
 
 // Group represents a complete group with users and child groups.
 type Group struct {
-	GroupBasic
-	Users  []string `json:"users,omitempty"` // User IDs
-	Groups []string `json:"groups"`          // Child group IDs
+	Id          string   `json:"id"`
+	Name        string   `json:"name"`
+	Description *string  `json:"description,omitempty"`
+	Parent      Parent   `json:"parent"`
+	Users       []string `json:"users,omitempty"`
+	Groups      []string `json:"groups"`
 }
 
 // CreateGroupRequest represents the request body for creating a group.
@@ -62,8 +65,11 @@ type CreateGroupRequest struct {
 
 // UpdateGroupRequest represents the request body for updating a group.
 type UpdateGroupRequest struct {
-	CreateGroupRequest
-	Groups []string `json:"groups,omitempty"`
+	Name        string   `json:"name"`
+	Description *string  `json:"description,omitempty"`
+	Parent      Parent   `json:"parent"`
+	Users       []string `json:"users,omitempty"`
+	Groups      []string `json:"groups,omitempty"`
 }
 
 // Error variables

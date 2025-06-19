@@ -69,7 +69,6 @@ func CreateGroup(group model.Group) error {
 			Name:        parentGroup.Name,
 			Description: parentGroup.Description,
 			Parent:      parentGroup.Parent,
-			Groups:      parentGroup.Groups,
 		}
 		ouID = getOUFromPath(parentGroupBasic)
 	} else {
@@ -207,18 +206,11 @@ func GetGroupList(parentID *string) ([]model.GroupBasic, error) {
 			return nil, fmt.Errorf("failed to build group from result row: %w", err)
 		}
 
-		// Get child groups
-		childGroups, err := getChildGroups(dbClient, group.Id, logger)
-		if err != nil {
-			return nil, err
-		}
-
 		groupBasic := model.GroupBasic{
 			Id:          group.Id,
 			Name:        group.Name,
 			Description: group.Description,
 			Parent:      group.Parent,
-			Groups:      childGroups,
 		}
 
 		groups = append(groups, groupBasic)
@@ -266,7 +258,6 @@ func UpdateGroup(group model.Group) error {
 			Name:        parentGroup.Name,
 			Description: parentGroup.Description,
 			Parent:      parentGroup.Parent,
-			Groups:      parentGroup.Groups,
 		}
 		ouID = getOUFromPath(parentGroupBasic)
 	} else {
