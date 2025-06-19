@@ -20,11 +20,12 @@
 package store
 
 import (
-	"fmt"
 	"github.com/asgardeo/thunder/internal/group/model"
 	"github.com/asgardeo/thunder/internal/system/database/client"
 	"github.com/asgardeo/thunder/internal/system/database/provider"
 	"github.com/asgardeo/thunder/internal/system/log"
+
+	"fmt"
 )
 
 // GroupType represents the type group entity.
@@ -315,15 +316,13 @@ func DeleteGroup(id string) error {
 	}
 
 	if rowsAffected == 0 {
-		logger.Error("Group not found with id: " + id)
-		return model.ErrGroupNotFound
+		logger.Debug("Group not found with id: " + id)
 	}
 
 	return nil
 }
 
-// Helper functions
-
+// buildGroupFromResultRow constructs a model.Group from a database result row.
 func buildGroupFromResultRow(row map[string]interface{}, logger *log.Logger) (model.Group, error) {
 	groupID, ok := row["group_id"].(string)
 	if !ok {
@@ -380,6 +379,7 @@ func buildGroupFromResultRow(row map[string]interface{}, logger *log.Logger) (mo
 	return group, nil
 }
 
+// getChildGroups retrieves the child groups of a given group ID.
 func getChildGroups(dbClient client.DBClientInterface, groupID string, logger *log.Logger) ([]string, error) {
 	results, err := dbClient.Query(QueryGetChildGroups, groupID)
 	if err != nil {
@@ -397,6 +397,7 @@ func getChildGroups(dbClient client.DBClientInterface, groupID string, logger *l
 	return childGroups, nil
 }
 
+// getChildGroups retrieves the child groups of a given group ID.
 func getGroupUsers(dbClient client.DBClientInterface, groupID string, logger *log.Logger) ([]string, error) {
 	results, err := dbClient.Query(QueryGetGroupUsers, groupID)
 	if err != nil {
@@ -414,6 +415,7 @@ func getGroupUsers(dbClient client.DBClientInterface, groupID string, logger *lo
 	return users, nil
 }
 
+// addUsersToGroup adds a list of users to a group.
 func addUsersToGroup(dbClient client.DBClientInterface, groupID string, users []string, logger *log.Logger) error {
 	for _, userID := range users {
 		_, err := dbClient.Execute(QueryAddUserToGroup, groupID, userID)
@@ -425,6 +427,7 @@ func addUsersToGroup(dbClient client.DBClientInterface, groupID string, users []
 	return nil
 }
 
+// updateGroupUsers updates the users in a group by first deleting existing users and then adding new ones.
 func updateGroupUsers(dbClient client.DBClientInterface, groupID string, users []string, logger *log.Logger) error {
 	// Delete existing users
 	_, err := dbClient.Execute(QueryDeleteGroupUsers, groupID)
@@ -437,6 +440,7 @@ func updateGroupUsers(dbClient client.DBClientInterface, groupID string, users [
 	return addUsersToGroup(dbClient, groupID, users, logger)
 }
 
+// checkGroupNameConflict checks if a group name conflicts with existing groups under the same parent.
 func checkGroupNameConflict(
 	dbClient client.DBClientInterface,
 	name string,
@@ -478,6 +482,8 @@ func checkGroupNameConflict(
 	return nil
 }
 
+// checkGroupNameConflictForUpdate checks if a group name conflicts with existing groups under
+// the same parent during an update.
 func checkGroupNameConflictForUpdate(
 	dbClient client.DBClientInterface,
 	name string,
@@ -488,6 +494,7 @@ func checkGroupNameConflictForUpdate(
 	return checkGroupNameConflict(dbClient, name, parent, groupID, logger)
 }
 
+// generateGroupPath generates the path for a group based on its name and parent.
 func generateGroupPath(name string, parent model.Parent) string {
 	// Simplified path generation - in a real implementation, you'd build the full path
 	// from the root to this group
@@ -497,6 +504,7 @@ func generateGroupPath(name string, parent model.Parent) string {
 	return fmt.Sprintf("/%s", name)
 }
 
+// getOUFromPath extracts the OU ID from a group's path.
 func getOUFromPath(group model.GroupBasic) string {
 	// Simplified - in a real implementation, you'd extract the OU from the group's path
 	// For now, return the parent OU ID

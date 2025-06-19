@@ -72,7 +72,7 @@ func (gs *GroupService) CreateGroup(request model.CreateGroupRequest) (*model.Gr
 		Description: request.Description,
 		Parent:      request.Parent,
 		Users:       request.Users,
-		Groups:      []string{}, // Initialize empty child groups
+		Groups:      []string{},
 	}
 
 	// Create group in the database
@@ -136,17 +136,10 @@ func (gs *GroupService) UpdateGroup(groupID string, request model.UpdateGroupReq
 		return nil, err
 	}
 
-	// Return the updated group
-	group, err := store.GetGroup(groupID)
-	if err != nil {
-		logger.Error("Failed to get updated group", log.Error(err))
-		return nil, err
-	}
-
-	return &group, nil
+	return &updatedGroup, nil
 }
 
-// DeleteGroup deletes a group.
+// DeleteGroup delete the specified group by its id.
 func (gs *GroupService) DeleteGroup(groupID string) error {
 	if groupID == "" {
 		return errors.New("group id is empty")
@@ -160,34 +153,28 @@ func (gs *GroupService) DeleteGroup(groupID string) error {
 	return nil
 }
 
+// validateCreateGroupRequest validates fields for create group requests.
 func validateCreateGroupRequest(request model.CreateGroupRequest) error {
-	if request.Name == "" {
-		return model.ErrInvalidRequest
-	}
-
-	if request.Parent.Type == "" || request.Parent.ID == "" {
-		return model.ErrInvalidRequest
-	}
-
-	// Use ParentType constants for validation
-	if request.Parent.Type != model.ParentTypeGroup && request.Parent.Type != model.ParentTypeOrganizationUnit {
-		return model.ErrInvalidRequest
-	}
-
-	return nil
+	return validateGroupRequest(request.Name, request.Parent)
 }
 
+// validateUpdateGroupRequest validates fields for update group requests.
 func validateUpdateGroupRequest(request model.UpdateGroupRequest) error {
-	if request.Name == "" {
+	return validateGroupRequest(request.Name, request.Parent)
+}
+
+// validateGroupRequest validates the common fields for group requests.
+func validateGroupRequest(name string, parent model.Parent) error {
+	if name == "" {
 		return model.ErrInvalidRequest
 	}
 
-	if request.Parent.Type == "" || request.Parent.ID == "" {
+	if parent.Type == "" || parent.ID == "" {
 		return model.ErrInvalidRequest
 	}
 
 	// Use ParentType constants for validation
-	if request.Parent.Type != model.ParentTypeGroup && request.Parent.Type != model.ParentTypeOrganizationUnit {
+	if parent.Type != model.ParentTypeGroup && parent.Type != model.ParentTypeOrganizationUnit {
 		return model.ErrInvalidRequest
 	}
 

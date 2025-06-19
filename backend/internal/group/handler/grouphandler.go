@@ -42,20 +42,14 @@ func (gh *GroupHandler) HandleGroupListRequest(w http.ResponseWriter, r *http.Re
 	groupService := groupProvider.GetGroupService()
 	groups, err := groupService.GetGroupList()
 	if err != nil {
-		if errors.Is(err, model.ErrParentNotFound) {
-			http.Error(w, "Not Found: Parent group not found.", http.StatusNotFound)
-		} else {
-			http.Error(w, "Internal Server Error: "+
-				"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
-		}
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(groups)
 	if err != nil {
-		http.Error(w, "Internal Server Error: "+
-			"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -83,10 +77,10 @@ func (gh *GroupHandler) HandleGroupPostRequest(w http.ResponseWriter, r *http.Re
 		} else if errors.Is(err, model.ErrParentNotFound) {
 			http.Error(w, "Bad Request: Parent group or organization unit not found.", http.StatusBadRequest)
 		} else if errors.Is(err, model.ErrInvalidRequest) {
+			// TODO: Check whether this case is present and needed
 			http.Error(w, "Bad Request: The request body is malformed or contains invalid data.", http.StatusBadRequest)
 		} else {
-			http.Error(w, "Internal Server Error: "+
-				"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -96,8 +90,7 @@ func (gh *GroupHandler) HandleGroupPostRequest(w http.ResponseWriter, r *http.Re
 
 	err = json.NewEncoder(w).Encode(createdGroup)
 	if err != nil {
-		http.Error(w, "Internal Server Error: "+
-			"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -123,8 +116,7 @@ func (gh *GroupHandler) HandleGroupGetRequest(w http.ResponseWriter, r *http.Req
 		if errors.Is(err, model.ErrGroupNotFound) {
 			http.Error(w, "Not Found: The group with the specified id does not exist.", http.StatusNotFound)
 		} else {
-			http.Error(w, "Internal Server Error: "+
-				"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -132,8 +124,7 @@ func (gh *GroupHandler) HandleGroupGetRequest(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(group)
 	if err != nil {
-		http.Error(w, "Internal Server Error: "+
-			"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -165,14 +156,15 @@ func (gh *GroupHandler) HandleGroupPutRequest(w http.ResponseWriter, r *http.Req
 		if errors.Is(err, model.ErrGroupNotFound) {
 			http.Error(w, "Not Found: The group with the specified id does not exist.", http.StatusNotFound)
 		} else if errors.Is(err, model.ErrGroupNameConflict) {
-			http.Error(w, "Conflict: A group with the same name exists under the same parent.", http.StatusConflict)
+			// TODO: Check whether it exclude name validation when name is not changed
+			http.Error(w, "Conflict: A group with the new name exists under the same parent.", http.StatusConflict)
 		} else if errors.Is(err, model.ErrParentNotFound) {
 			http.Error(w, "Bad Request: Parent group or organization unit not found.", http.StatusBadRequest)
 		} else if errors.Is(err, model.ErrInvalidRequest) {
+			// TODO: Check whether this case is present and needed
 			http.Error(w, "Bad Request: The request body is malformed or contains invalid data.", http.StatusBadRequest)
 		} else {
-			http.Error(w, "Internal Server Error: "+
-				"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -180,8 +172,7 @@ func (gh *GroupHandler) HandleGroupPutRequest(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(group)
 	if err != nil {
-		http.Error(w, "Internal Server Error: "+
-			"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -204,13 +195,10 @@ func (gh *GroupHandler) HandleGroupDeleteRequest(w http.ResponseWriter, r *http.
 	groupService := groupProvider.GetGroupService()
 	err := groupService.DeleteGroup(id)
 	if err != nil {
-		if errors.Is(err, model.ErrGroupNotFound) {
-			http.Error(w, "Not Found: The group with the specified id does not exist.", http.StatusNotFound)
-		} else if errors.Is(err, model.ErrCannotDeleteGroupWithChildren) {
+		if errors.Is(err, model.ErrCannotDeleteGroupWithChildren) {
 			http.Error(w, "Bad Request: Cannot delete group with child groups.", http.StatusBadRequest)
 		} else {
-			http.Error(w, "Internal Server Error: "+
-				"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 		return
 	}

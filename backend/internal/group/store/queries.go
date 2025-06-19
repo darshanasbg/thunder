@@ -51,37 +51,37 @@ var (
 
 	// QueryDeleteGroup is the query to delete a group.
 	QueryDeleteGroup = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-07",
+		ID:    "GRQ-GROUP_MGT-05",
 		Query: `DELETE FROM "GROUP" WHERE GROUP_ID = $1`,
 	}
 
 	// QueryGetChildGroups is the query to get child groups of a group.
 	QueryGetChildGroups = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-08",
+		ID:    "GRQ-GROUP_MGT-06",
 		Query: `SELECT GROUP_ID FROM "GROUP" WHERE PARENT_ID = $1`,
 	}
 
 	// QueryGetGroupUsers is the query to get users in a group.
 	QueryGetGroupUsers = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-09",
+		ID:    "GRQ-GROUP_MGT-07",
 		Query: `SELECT USER_ID FROM GROUP_USER_REFERENCE WHERE GROUP_ID = $1`,
 	}
 
 	// QueryDeleteGroupUsers is the query to delete all users from a group.
 	QueryDeleteGroupUsers = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-10",
+		ID:    "GRQ-GROUP_MGT-08",
 		Query: `DELETE FROM GROUP_USER_REFERENCE WHERE GROUP_ID = $1`,
 	}
 
 	// QueryAddUserToGroup is the query to add a user to a group.
 	QueryAddUserToGroup = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-11",
+		ID:    "GRQ-GROUP_MGT-09",
 		Query: `INSERT INTO GROUP_USER_REFERENCE (GROUP_ID, USER_ID) VALUES ($1, $2)`,
 	}
 
 	// QueryCheckGroupNameConflict is the query to check if a group name conflicts under the same parent.
 	QueryCheckGroupNameConflict = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-12",
+		ID:    "GRQ-GROUP_MGT-10",
 		Query: `SELECT COUNT(*) as count FROM "GROUP" WHERE NAME = $1 AND PARENT_ID = $2 AND OU_ID = $3`,
 	}
 
