@@ -21,8 +21,8 @@ package store
 
 import (
 	"fmt"
-
 	"github.com/asgardeo/thunder/internal/group/model"
+	"github.com/asgardeo/thunder/internal/system/database/client"
 	"github.com/asgardeo/thunder/internal/system/database/provider"
 	"github.com/asgardeo/thunder/internal/system/log"
 )
@@ -128,6 +128,7 @@ func CreateGroup(group model.Group) error {
 		parentGroupID,
 		ouID,
 		group.Name,
+		group.Description,
 		path,
 	)
 	if err != nil {
@@ -252,6 +253,7 @@ func UpdateGroup(group model.Group) error {
 		parentGroupID,
 		ouID,
 		group.Name,
+		group.Description,
 		path,
 	)
 	if err != nil {
@@ -378,13 +380,8 @@ func buildGroupFromResultRow(row map[string]interface{}, logger *log.Logger) (mo
 	return group, nil
 }
 
-func getChildGroups(dbClient interface{}, groupID string, logger *log.Logger) ([]string, error) {
-	type QueryInterface interface {
-		Query(query interface{}, args ...interface{}) ([]map[string]interface{}, error)
-	}
-
-	client := dbClient.(QueryInterface)
-	results, err := client.Query(QueryGetChildGroups, groupID)
+func getChildGroups(dbClient client.DBClientInterface, groupID string, logger *log.Logger) ([]string, error) {
+	results, err := dbClient.Query(QueryGetChildGroups, groupID)
 	if err != nil {
 		logger.Error("Failed to get child groups", log.Error(err))
 		return nil, fmt.Errorf("failed to get child groups: %w", err)
@@ -400,13 +397,8 @@ func getChildGroups(dbClient interface{}, groupID string, logger *log.Logger) ([
 	return childGroups, nil
 }
 
-func getGroupUsers(dbClient interface{}, groupID string, logger *log.Logger) ([]string, error) {
-	type QueryInterface interface {
-		Query(query interface{}, args ...interface{}) ([]map[string]interface{}, error)
-	}
-
-	client := dbClient.(QueryInterface)
-	results, err := client.Query(QueryGetGroupUsers, groupID)
+func getGroupUsers(dbClient client.DBClientInterface, groupID string, logger *log.Logger) ([]string, error) {
+	results, err := dbClient.Query(QueryGetGroupUsers, groupID)
 	if err != nil {
 		logger.Error("Failed to get group users", log.Error(err))
 		return nil, fmt.Errorf("failed to get group users: %w", err)
@@ -422,14 +414,9 @@ func getGroupUsers(dbClient interface{}, groupID string, logger *log.Logger) ([]
 	return users, nil
 }
 
-func addUsersToGroup(dbClient interface{}, groupID string, users []string, logger *log.Logger) error {
-	type ExecuteInterface interface {
-		Execute(query interface{}, args ...interface{}) (int64, error)
-	}
-
-	client := dbClient.(ExecuteInterface)
+func addUsersToGroup(dbClient client.DBClientInterface, groupID string, users []string, logger *log.Logger) error {
 	for _, userID := range users {
-		_, err := client.Execute(QueryAddUserToGroup, groupID, userID)
+		_, err := dbClient.Execute(QueryAddUserToGroup, groupID, userID)
 		if err != nil {
 			logger.Error("Failed to add user to group", log.String("userID", userID), log.Error(err))
 			return fmt.Errorf("failed to add user to group: %w", err)
@@ -438,15 +425,9 @@ func addUsersToGroup(dbClient interface{}, groupID string, users []string, logge
 	return nil
 }
 
-func updateGroupUsers(dbClient interface{}, groupID string, users []string, logger *log.Logger) error {
-	type ExecuteInterface interface {
-		Execute(query interface{}, args ...interface{}) (int64, error)
-	}
-
-	client := dbClient.(ExecuteInterface)
-
+func updateGroupUsers(dbClient client.DBClientInterface, groupID string, users []string, logger *log.Logger) error {
 	// Delete existing users
-	_, err := client.Execute(QueryDeleteGroupUsers, groupID)
+	_, err := dbClient.Execute(QueryDeleteGroupUsers, groupID)
 	if err != nil {
 		logger.Error("Failed to delete existing group users", log.Error(err))
 		return fmt.Errorf("failed to delete existing group users: %w", err)
@@ -457,18 +438,12 @@ func updateGroupUsers(dbClient interface{}, groupID string, users []string, logg
 }
 
 func checkGroupNameConflict(
-	dbClient interface{},
+	dbClient client.DBClientInterface,
 	name string,
 	parent model.Parent,
 	excludeGroupID string,
 	logger *log.Logger,
 ) error {
-	type QueryInterface interface {
-		Query(query interface{}, args ...interface{}) ([]map[string]interface{}, error)
-	}
-
-	client := dbClient.(QueryInterface)
-
 	var parentGroupID *string
 	var ouID string
 
@@ -484,9 +459,9 @@ func checkGroupNameConflict(
 	var err error
 
 	if excludeGroupID != "" {
-		results, err = client.Query(QueryCheckGroupNameConflictForUpdate, name, parentGroupID, ouID, excludeGroupID)
+		results, err = dbClient.Query(QueryCheckGroupNameConflictForUpdate, name, parentGroupID, ouID, excludeGroupID)
 	} else {
-		results, err = client.Query(QueryCheckGroupNameConflict, name, parentGroupID, ouID)
+		results, err = dbClient.Query(QueryCheckGroupNameConflict, name, parentGroupID, ouID)
 	}
 
 	if err != nil {
@@ -504,7 +479,7 @@ func checkGroupNameConflict(
 }
 
 func checkGroupNameConflictForUpdate(
-	dbClient interface{},
+	dbClient client.DBClientInterface,
 	name string,
 	parent model.Parent,
 	groupID string,

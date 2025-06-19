@@ -82,14 +82,7 @@ func (gs *GroupService) CreateGroup(request model.CreateGroupRequest) (*model.Gr
 		return nil, err
 	}
 
-	// Return the created group
-	createdGroup, err := store.GetGroup(group.ID)
-	if err != nil {
-		logger.Error("Failed to get created group", log.Error(err))
-		return nil, err
-	}
-
-	return &createdGroup, nil
+	return &group, nil
 }
 
 // GetGroup retrieves a specific group by its id.

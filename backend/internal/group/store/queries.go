@@ -33,19 +33,19 @@ var (
 	// QueryCreateGroup is the query to create a new group.
 	QueryCreateGroup = dbmodel.DBQuery{
 		ID:    "GRQ-GROUP_MGT-02",
-		Query: `INSERT INTO "GROUP" (GROUP_ID, PARENT_ID, OU_ID, NAME, PATH) VALUES ($1, $2, $3, $4, $5)`,
+		Query: `INSERT INTO "GROUP" (GROUP_ID, PARENT_ID, OU_ID, NAME, DESCRIPTION, PATH) VALUES ($1, $2, $3, $4, $5, $6)`,
 	}
 
 	// QueryGetGroupByID is the query to get a group by id.
 	QueryGetGroupByID = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-05",
-		Query: `SELECT GROUP_ID, PARENT_ID, OU_ID, NAME, PATH FROM "GROUP" WHERE GROUP_ID = $1`,
+		ID:    "GRQ-GROUP_MGT-03",
+		Query: `SELECT GROUP_ID, PARENT_ID, OU_ID, NAME, DESCRIPTION, PATH FROM "GROUP" WHERE GROUP_ID = $1`,
 	}
 
 	// QueryUpdateGroup is the query to update a group.
 	QueryUpdateGroup = dbmodel.DBQuery{
-		ID: "GRQ-GROUP_MGT-06",
-		Query: `UPDATE "GROUP" SET PARENT_ID = $2, OU_ID = $3, NAME = $4, PATH = $5, ` +
+		ID: "GRQ-GROUP_MGT-04",
+		Query: `UPDATE "GROUP" SET PARENT_ID = $2, OU_ID = $3, NAME = $4, DESCRIPTION = $5, PATH = $6, ` +
 			`UPDATED_AT = datetime('now') WHERE GROUP_ID = $1`,
 	}
 
