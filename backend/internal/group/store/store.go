@@ -30,6 +30,71 @@ import (
 // GroupType represents the type group entity.
 const GroupType = "group"
 
+// GetGroupList retrieves all groups or groups filtered by parent.
+func GetGroupList(parentID *string) ([]model.GroupBasic, error) {
+	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, "GroupStore"))
+
+	dbClient, err := provider.NewDBProvider().GetDBClient("identity")
+	if err != nil {
+		logger.Error("Failed to get database client", log.Error(err))
+		return nil, fmt.Errorf("failed to get database client: %w", err)
+	}
+	defer func() {
+		if closeErr := dbClient.Close(); closeErr != nil {
+			logger.Error("Failed to close database client", log.Error(closeErr))
+		}
+	}()
+
+	var results []map[string]interface{}
+
+	if parentID != nil {
+		// Check if parent exists and determine if it's a group or OU
+		parentGroup, err := GetGroup(*parentID)
+		if err != nil {
+			// Try to treat as OU
+			results, err = dbClient.Query(QueryGetGroupsByOU, *parentID)
+			if err != nil {
+				logger.Error("Failed to execute query for OU groups", log.Error(err))
+				return nil, fmt.Errorf("failed to execute query: %w", err)
+			}
+		} else {
+			// It's a group, get child groups
+			results, err = dbClient.Query(QueryGetGroupsByParent, parentGroup.Id)
+			if err != nil {
+				logger.Error("Failed to execute query for child groups", log.Error(err))
+				return nil, fmt.Errorf("failed to execute query: %w", err)
+			}
+		}
+	} else {
+		// Get all groups
+		results, err = dbClient.Query(QueryGetGroupList)
+		if err != nil {
+			logger.Error("Failed to execute query", log.Error(err))
+			return nil, fmt.Errorf("failed to execute query: %w", err)
+		}
+	}
+
+	groups := make([]model.GroupBasic, 0)
+	for _, row := range results {
+		group, err := buildGroupFromResultRow(row, logger)
+		if err != nil {
+			logger.Error("Failed to build group from result row", log.Error(err))
+			return nil, fmt.Errorf("failed to build group from result row: %w", err)
+		}
+
+		groupBasic := model.GroupBasic{
+			Id:          group.Id,
+			Name:        group.Name,
+			Description: group.Description,
+			Parent:      group.Parent,
+		}
+
+		groups = append(groups, groupBasic)
+	}
+
+	return groups, nil
+}
+
 // CreateGroup creates a new group in the database.
 func CreateGroup(group model.Group) error {
 	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, "GroupStore"))
@@ -152,71 +217,6 @@ func GetGroup(id string) (model.Group, error) {
 	group.Users = users
 
 	return group, nil
-}
-
-// GetGroupList retrieves all groups or groups filtered by parent.
-func GetGroupList(parentID *string) ([]model.GroupBasic, error) {
-	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, "GroupStore"))
-
-	dbClient, err := provider.NewDBProvider().GetDBClient("identity")
-	if err != nil {
-		logger.Error("Failed to get database client", log.Error(err))
-		return nil, fmt.Errorf("failed to get database client: %w", err)
-	}
-	defer func() {
-		if closeErr := dbClient.Close(); closeErr != nil {
-			logger.Error("Failed to close database client", log.Error(closeErr))
-		}
-	}()
-
-	var results []map[string]interface{}
-
-	if parentID != nil {
-		// Check if parent exists and determine if it's a group or OU
-		parentGroup, err := GetGroup(*parentID)
-		if err != nil {
-			// Try to treat as OU
-			results, err = dbClient.Query(QueryGetGroupsByOU, *parentID)
-			if err != nil {
-				logger.Error("Failed to execute query for OU groups", log.Error(err))
-				return nil, fmt.Errorf("failed to execute query: %w", err)
-			}
-		} else {
-			// It's a group, get child groups
-			results, err = dbClient.Query(QueryGetGroupsByParent, parentGroup.Id)
-			if err != nil {
-				logger.Error("Failed to execute query for child groups", log.Error(err))
-				return nil, fmt.Errorf("failed to execute query: %w", err)
-			}
-		}
-	} else {
-		// Get all groups
-		results, err = dbClient.Query(QueryGetGroupList)
-		if err != nil {
-			logger.Error("Failed to execute query", log.Error(err))
-			return nil, fmt.Errorf("failed to execute query: %w", err)
-		}
-	}
-
-	groups := make([]model.GroupBasic, 0)
-	for _, row := range results {
-		group, err := buildGroupFromResultRow(row, logger)
-		if err != nil {
-			logger.Error("Failed to build group from result row", log.Error(err))
-			return nil, fmt.Errorf("failed to build group from result row: %w", err)
-		}
-
-		groupBasic := model.GroupBasic{
-			Id:          group.Id,
-			Name:        group.Name,
-			Description: group.Description,
-			Parent:      group.Parent,
-		}
-
-		groups = append(groups, groupBasic)
-	}
-
-	return groups, nil
 }
 
 // UpdateGroup updates an existing group.

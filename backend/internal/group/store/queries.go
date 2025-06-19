@@ -24,35 +24,35 @@ import (
 )
 
 var (
-	// QueryCreateGroup is the query to create a new group.
-	QueryCreateGroup = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-01",
-		Query: `INSERT INTO "GROUP" (GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH) VALUES ($1, $2, $3, $4, $5)`,
-	}
-
-	// QueryGetGroupByID is the query to get a group by Id.
-	QueryGetGroupByID = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-02",
-		Query: `SELECT GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH FROM "GROUP" WHERE GROUP_ID = $1`,
-	}
-
 	// QueryGetGroupList is the query to get all groups.
 	QueryGetGroupList = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-03",
+		ID:    "GRQ-GROUP_MGT-01",
 		Query: `SELECT GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH FROM "GROUP"`,
 	}
 
 	// QueryGetGroupsByParent is the query to get groups by parent.
 	QueryGetGroupsByParent = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-04",
+		ID:    "GRQ-GROUP_MGT-02",
 		Query: `SELECT GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH FROM "GROUP" WHERE PARENT_GROUP_ID = $1`,
 	}
 
 	// QueryGetGroupsByOU is the query to get root groups by organization unit.
 	QueryGetGroupsByOU = dbmodel.DBQuery{
-		ID: "GRQ-GROUP_MGT-05",
+		ID: "GRQ-GROUP_MGT-03",
 		Query: `SELECT GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH FROM "GROUP" ` +
 			`WHERE OU_ID = $1 AND PARENT_GROUP_ID IS NULL`,
+	}
+
+	// QueryCreateGroup is the query to create a new group.
+	QueryCreateGroup = dbmodel.DBQuery{
+		ID:    "GRQ-GROUP_MGT-04",
+		Query: `INSERT INTO "GROUP" (GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH) VALUES ($1, $2, $3, $4, $5)`,
+	}
+
+	// QueryGetGroupByID is the query to get a group by Id.
+	QueryGetGroupByID = dbmodel.DBQuery{
+		ID:    "GRQ-GROUP_MGT-05",
+		Query: `SELECT GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH FROM "GROUP" WHERE GROUP_ID = $1`,
 	}
 
 	// QueryUpdateGroup is the query to update a group.

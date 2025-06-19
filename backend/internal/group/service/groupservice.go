@@ -30,8 +30,8 @@ import (
 
 // GroupServiceInterface defines the interface for the group service.
 type GroupServiceInterface interface {
-	CreateGroup(request model.CreateGroupRequest) (*model.Group, error)
 	GetGroupList(parentID *string) ([]model.GroupBasic, error)
+	CreateGroup(request model.CreateGroupRequest) (*model.Group, error)
 	GetGroup(groupID string) (*model.Group, error)
 	UpdateGroup(groupID string, request model.UpdateGroupRequest) (*model.Group, error)
 	DeleteGroup(groupID string) error
@@ -43,6 +43,16 @@ type GroupService struct{}
 // GetGroupService creates a new instance of GroupService.
 func GetGroupService() GroupServiceInterface {
 	return &GroupService{}
+}
+
+// GetGroupList retrieves a list of groups, optionally filtered by parent.
+func (gs *GroupService) GetGroupList(parentID *string) ([]model.GroupBasic, error) {
+	groups, err := store.GetGroupList(parentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return groups, nil
 }
 
 // CreateGroup creates a new group.
@@ -80,16 +90,6 @@ func (gs *GroupService) CreateGroup(request model.CreateGroupRequest) (*model.Gr
 	}
 
 	return &createdGroup, nil
-}
-
-// GetGroupList retrieves a list of groups, optionally filtered by parent.
-func (gs *GroupService) GetGroupList(parentID *string) ([]model.GroupBasic, error) {
-	groups, err := store.GetGroupList(parentID)
-	if err != nil {
-		return nil, err
-	}
-
-	return groups, nil
 }
 
 // GetGroup retrieves a specific group by its Id.
@@ -166,8 +166,6 @@ func (gs *GroupService) DeleteGroup(groupID string) error {
 
 	return nil
 }
-
-// Helper functions for validation
 
 func validateCreateGroupRequest(request model.CreateGroupRequest) error {
 	if request.Name == "" {

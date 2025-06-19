@@ -34,6 +34,43 @@ import (
 type GroupHandler struct {
 }
 
+// HandleGroupListRequest handles the get groups list request.
+func (gh *GroupHandler) HandleGroupListRequest(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, "GroupHandler"))
+
+	// Get parent parameter from query string
+	parentID := r.URL.Query().Get("parent")
+	var parentIDPtr *string
+	if parentID != "" {
+		parentIDPtr = &parentID
+	}
+
+	// Get the groups list using the group service
+	groupProvider := provider.NewGroupProvider()
+	groupService := groupProvider.GetGroupService()
+	groups, err := groupService.GetGroupList(parentIDPtr)
+	if err != nil {
+		if errors.Is(err, model.ErrParentNotFound) {
+			http.Error(w, "Not Found: Parent group not found.", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal Server Error: "+
+				"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(groups)
+	if err != nil {
+		http.Error(w, "Internal Server Error: "+
+			"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
+		return
+	}
+
+	// Log the groups response
+	logger.Debug("Groups GET (list) response sent")
+}
+
 // HandleGroupPostRequest handles the create group request.
 func (gh *GroupHandler) HandleGroupPostRequest(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, "GroupHandler"))
@@ -74,43 +111,6 @@ func (gh *GroupHandler) HandleGroupPostRequest(w http.ResponseWriter, r *http.Re
 
 	// Log the group creation response
 	logger.Debug("Group POST response sent", log.String("group id", createdGroup.Id))
-}
-
-// HandleGroupListRequest handles the get groups list request.
-func (gh *GroupHandler) HandleGroupListRequest(w http.ResponseWriter, r *http.Request) {
-	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, "GroupHandler"))
-
-	// Get parent parameter from query string
-	parentID := r.URL.Query().Get("parent")
-	var parentIDPtr *string
-	if parentID != "" {
-		parentIDPtr = &parentID
-	}
-
-	// Get the groups list using the group service
-	groupProvider := provider.NewGroupProvider()
-	groupService := groupProvider.GetGroupService()
-	groups, err := groupService.GetGroupList(parentIDPtr)
-	if err != nil {
-		if errors.Is(err, model.ErrParentNotFound) {
-			http.Error(w, "Not Found: Parent group not found.", http.StatusNotFound)
-		} else {
-			http.Error(w, "Internal Server Error: "+
-				"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
-		}
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(groups)
-	if err != nil {
-		http.Error(w, "Internal Server Error: "+
-			"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
-		return
-	}
-
-	// Log the groups response
-	logger.Debug("Groups GET (list) response sent")
 }
 
 // HandleGroupGetRequest handles the get group by Id request.
