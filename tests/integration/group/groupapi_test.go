@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -46,68 +47,46 @@ var (
 	}
 )
 
+var createdGroupID string
+
 type GroupAPITestSuite struct {
 	suite.Suite
-	httpClient   *http.Client
-	createdGroup *Group
 }
 
 func (suite *GroupAPITestSuite) SetupSuite() {
-	// Create HTTP client with insecure TLS config for testing
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	id, err := createGroup(suite)
+	if err != nil {
+		suite.T().Fatalf("Failed to create group during setup: %v", err)
+	} else {
+		createdGroupID = id
 	}
-	suite.httpClient = &http.Client{Transport: tr}
 }
 
-func (suite *GroupAPITestSuite) TestCreateGroup() {
-	// Create a new group
-	jsonData, err := json.Marshal(groupToCreate)
-	suite.Require().NoError(err)
-
-	req, err := http.NewRequest("POST", testServerURL+"/groups", bytes.NewBuffer(jsonData))
-	suite.Require().NoError(err)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := suite.httpClient.Do(req)
-	if err != nil {
-		suite.T().Fatalf("HTTP request failed: %v", err)
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			suite.T().Logf("Failed to close response body: %v", err)
+func (suite *GroupAPITestSuite) TearDownSuite() {
+	if createdGroupID != "" {
+		err := deleteGroup(createdGroupID)
+		if err != nil {
+			suite.T().Fatalf("Failed to delete group during teardown: %v", err)
 		}
-	}()
-
-	suite.Equal(http.StatusCreated, resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		suite.T().Fatalf("Failed to read response body: %v", err)
 	}
-
-	var createdGroup Group
-	err = json.Unmarshal(body, &createdGroup)
-	suite.Require().NoError(err)
-
-	// Verify the created group
-	suite.NotEmpty(createdGroup.Id)
-	suite.Equal(groupToCreate.Name, createdGroup.Name)
-	suite.Equal(groupToCreate.Parent.Type, createdGroup.Parent.Type)
-	suite.Equal(groupToCreate.Parent.Id, createdGroup.Parent.Id)
-
-	// Store the created group for other tests
-	suite.createdGroup = &createdGroup
 }
 
 func (suite *GroupAPITestSuite) TestGetGroup() {
-	suite.Require().NotNil(suite.createdGroup, "Group must be created first")
+	if createdGroupID == "" {
+		suite.T().Fatal("Group ID is not available for retrieval")
+	}
 
 	// Get the created group
-	req, err := http.NewRequest("GET", testServerURL+"/groups/"+suite.createdGroup.Id, nil)
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest("GET", testServerURL+"/groups/"+createdGroupID, nil)
 	suite.Require().NoError(err)
 
-	resp, err := suite.httpClient.Do(req)
+	resp, err := client.Do(req)
 	suite.Require().NoError(err)
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
@@ -127,20 +106,29 @@ func (suite *GroupAPITestSuite) TestGetGroup() {
 	suite.Require().NoError(err)
 
 	// Verify the retrieved group
-	suite.Equal(suite.createdGroup.Id, retrievedGroup.Id)
-	suite.Equal(suite.createdGroup.Name, retrievedGroup.Name)
-	suite.Equal(suite.createdGroup.Parent.Type, retrievedGroup.Parent.Type)
-	suite.Equal(suite.createdGroup.Parent.Id, retrievedGroup.Parent.Id)
+	createdGroup := buildCreatedGroup()
+	suite.Equal(createdGroup.Id, retrievedGroup.Id)
+	suite.Equal(createdGroup.Name, retrievedGroup.Name)
+	suite.Equal(createdGroup.Parent.Type, retrievedGroup.Parent.Type)
+	suite.Equal(createdGroup.Parent.Id, retrievedGroup.Parent.Id)
 }
 
 func (suite *GroupAPITestSuite) TestListGroups() {
-	suite.Require().NotNil(suite.createdGroup, "Group must be created first")
+	if createdGroupID == "" {
+		suite.T().Fatal("Group ID is not available, group creation failed in setup")
+	}
 
 	// List groups
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
 	req, err := http.NewRequest("GET", testServerURL+"/groups", nil)
 	suite.Require().NoError(err)
 
-	resp, err := suite.httpClient.Do(req)
+	resp, err := client.Do(req)
 	suite.Require().NoError(err)
 	defer resp.Body.Close()
 
@@ -157,10 +145,11 @@ func (suite *GroupAPITestSuite) TestListGroups() {
 
 	// Verify the list contains our created group
 	found := false
+	createdGroup := buildCreatedGroup()
 	for _, group := range groups {
-		if group.Id == suite.createdGroup.Id {
+		if group.Id == createdGroup.Id {
 			found = true
-			suite.Equal(suite.createdGroup.Name, group.Name)
+			suite.Equal(createdGroup.Name, group.Name)
 			break
 		}
 	}
@@ -168,7 +157,9 @@ func (suite *GroupAPITestSuite) TestListGroups() {
 }
 
 func (suite *GroupAPITestSuite) TestUpdateGroup() {
-	suite.Require().NotNil(suite.createdGroup, "Group must be created first")
+	if createdGroupID == "" {
+		suite.T().Fatal("Group ID is not available for update")
+	}
 
 	// Update the group
 	updateRequest := map[string]interface{}{
@@ -184,11 +175,17 @@ func (suite *GroupAPITestSuite) TestUpdateGroup() {
 	jsonData, err := json.Marshal(updateRequest)
 	suite.Require().NoError(err)
 
-	req, err := http.NewRequest("PUT", testServerURL+"/groups/"+suite.createdGroup.Id, bytes.NewBuffer(jsonData))
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest("PUT", testServerURL+"/groups/"+createdGroupID, bytes.NewBuffer(jsonData))
 	suite.Require().NoError(err)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := suite.httpClient.Do(req)
+	resp, err := client.Do(req)
 	suite.Require().NoError(err)
 	defer resp.Body.Close()
 
@@ -202,28 +199,60 @@ func (suite *GroupAPITestSuite) TestUpdateGroup() {
 	suite.Require().NoError(err)
 
 	// Verify the update
-	suite.Equal(suite.createdGroup.Id, updatedGroup.Id)
+	suite.Equal(createdGroupID, updatedGroup.Id)
 	suite.Equal("Updated Test Group", updatedGroup.Name)
 }
 
 func (suite *GroupAPITestSuite) TestDeleteGroup() {
-	suite.Require().NotNil(suite.createdGroup, "Group must be created first")
+	// Create a temporary group for this test since we don't want to delete the main test group
+	tempGroupToCreate := CreateGroupRequest{
+		Name: "Temp Test Group",
+		Parent: Parent{
+			Type: "organizationUnit",
+			Id:   testOU,
+		},
+		Users: []string{},
+	}
 
-	// Delete the group
-	req, err := http.NewRequest("DELETE", testServerURL+"/groups/"+suite.createdGroup.Id, nil)
+	jsonData, err := json.Marshal(tempGroupToCreate)
 	suite.Require().NoError(err)
 
-	resp, err := suite.httpClient.Do(req)
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	// Create temporary group
+	req, err := http.NewRequest("POST", testServerURL+"/groups", bytes.NewBuffer(jsonData))
+	suite.Require().NoError(err)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	suite.Require().NoError(err)
+	defer resp.Body.Close()
+
+	suite.Equal(http.StatusCreated, resp.StatusCode)
+
+	var tempGroup Group
+	err = json.NewDecoder(resp.Body).Decode(&tempGroup)
+	suite.Require().NoError(err)
+
+	// Delete the temporary group
+	req, err = http.NewRequest("DELETE", testServerURL+"/groups/"+tempGroup.Id, nil)
+	suite.Require().NoError(err)
+
+	resp, err = client.Do(req)
 	suite.Require().NoError(err)
 	defer resp.Body.Close()
 
 	suite.Equal(http.StatusNoContent, resp.StatusCode)
 
 	// Verify the group is deleted by trying to get it
-	getReq, err := http.NewRequest("GET", testServerURL+"/groups/"+suite.createdGroup.Id, nil)
+	getReq, err := http.NewRequest("GET", testServerURL+"/groups/"+tempGroup.Id, nil)
 	suite.Require().NoError(err)
 
-	getResp, err := suite.httpClient.Do(getReq)
+	getResp, err := client.Do(getReq)
 	if err != nil {
 		suite.T().Fatalf("Failed to execute GET request: %v", err)
 	}
@@ -234,10 +263,16 @@ func (suite *GroupAPITestSuite) TestDeleteGroup() {
 
 func (suite *GroupAPITestSuite) TestGetNonExistentGroup() {
 	// Try to get a non-existent group
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
 	req, err := http.NewRequest("GET", testServerURL+"/groups/non-existent-id", nil)
 	suite.Require().NoError(err)
 
-	resp, err := suite.httpClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		suite.T().Fatalf("Failed to execute GET request: %v", err)
 	}
@@ -258,17 +293,99 @@ func (suite *GroupAPITestSuite) TestCreateGroupWithInvalidData() {
 	jsonData, err := json.Marshal(invalidGroup)
 	suite.Require().NoError(err)
 
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
 	req, err := http.NewRequest("POST", testServerURL+"/groups", bytes.NewBuffer(jsonData))
 	suite.Require().NoError(err)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := suite.httpClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		suite.T().Fatalf("Failed to execute POST request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	suite.Equal(http.StatusBadRequest, resp.StatusCode)
+}
+
+func createGroup(ts *GroupAPITestSuite) (string, error) {
+	jsonData, err := json.Marshal(groupToCreate)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal groupToCreate: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", testServerURL+"/groups", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("expected status 201, got %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var createdGroup Group
+	err = json.NewDecoder(resp.Body).Decode(&createdGroup)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse response body: %w", err)
+	}
+
+	return createdGroup.Id, nil
+}
+
+func deleteGroup(groupID string) error {
+	req, err := http.NewRequest("DELETE", testServerURL+"/groups/"+groupID, nil)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("expected status 204, got %d", resp.StatusCode)
+	}
+	return nil
+}
+
+func buildCreatedGroup() Group {
+	return Group{
+		GroupBasic: GroupBasic{
+			Id:   createdGroupID,
+			Name: groupToCreate.Name,
+			Parent: Parent{
+				Type: groupToCreate.Parent.Type,
+				Id:   groupToCreate.Parent.Id,
+			},
+		},
+		Users: groupToCreate.Users,
+	}
 }
 
 func TestGroupAPITestSuite(t *testing.T) {
