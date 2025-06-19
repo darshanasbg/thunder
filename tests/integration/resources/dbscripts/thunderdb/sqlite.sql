@@ -45,15 +45,16 @@ CREATE TABLE USER (
 
 -- Table to store Groups with path enumeration
 CREATE TABLE "GROUP" (
-    ID              INTEGER PRIMARY KEY AUTOINCREMENT,
-    GROUP_ID        VARCHAR(36) UNIQUE NOT NULL,
-    PARENT_GROUP_ID VARCHAR(36),
-    OU_ID           VARCHAR(36)        NOT NULL,
-    NAME            TEXT               NOT NULL,
-    PATH            TEXT               NOT NULL,
-    CREATED_AT      TEXT DEFAULT (datetime('now')),
-    UPDATED_AT      TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (PARENT_GROUP_ID) REFERENCES "GROUP" (GROUP_ID) ON DELETE CASCADE,
+    ID          INTEGER PRIMARY KEY AUTOINCREMENT,
+    GROUP_ID    VARCHAR(36) UNIQUE NOT NULL,
+    PARENT_ID   VARCHAR(36),
+    OU_ID       VARCHAR(36)        NOT NULL,
+    NAME        TEXT               NOT NULL,
+    DESCRIPTION TEXT               NOT NULL,
+    PATH        TEXT               NOT NULL,
+    CREATED_AT  TEXT DEFAULT (datetime('now')),
+    UPDATED_AT  TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (PARENT_ID) REFERENCES "GROUP" (GROUP_ID) ON DELETE CASCADE,
     FOREIGN KEY (OU_ID) REFERENCES ORGANIZATION_UNIT (OU_ID) ON DELETE CASCADE
 );
 

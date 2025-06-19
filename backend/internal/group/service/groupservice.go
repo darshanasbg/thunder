@@ -30,7 +30,7 @@ import (
 
 // GroupServiceInterface defines the interface for the group service.
 type GroupServiceInterface interface {
-	GetGroupList(parentID *string) ([]model.GroupBasic, error)
+	GetGroupList() ([]model.GroupBasic, error)
 	CreateGroup(request model.CreateGroupRequest) (*model.Group, error)
 	GetGroup(groupID string) (*model.Group, error)
 	UpdateGroup(groupID string, request model.UpdateGroupRequest) (*model.Group, error)
@@ -45,9 +45,9 @@ func GetGroupService() GroupServiceInterface {
 	return &GroupService{}
 }
 
-// GetGroupList retrieves a list of groups, optionally filtered by parent.
-func (gs *GroupService) GetGroupList(parentID *string) ([]model.GroupBasic, error) {
-	groups, err := store.GetGroupList(parentID)
+// GetGroupList retrieves a list of root groups.
+func (gs *GroupService) GetGroupList() ([]model.GroupBasic, error) {
+	groups, err := store.GetGroupList()
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (gs *GroupService) CreateGroup(request model.CreateGroupRequest) (*model.Gr
 
 	// Create group object
 	group := model.Group{
-		Id:          utils.GenerateUUID(),
+		ID:          utils.GenerateUUID(),
 		Name:        request.Name,
 		Description: request.Description,
 		Parent:      request.Parent,
@@ -83,7 +83,7 @@ func (gs *GroupService) CreateGroup(request model.CreateGroupRequest) (*model.Gr
 	}
 
 	// Return the created group
-	createdGroup, err := store.GetGroup(group.Id)
+	createdGroup, err := store.GetGroup(group.ID)
 	if err != nil {
 		logger.Error("Failed to get created group", log.Error(err))
 		return nil, err
@@ -92,10 +92,10 @@ func (gs *GroupService) CreateGroup(request model.CreateGroupRequest) (*model.Gr
 	return &createdGroup, nil
 }
 
-// GetGroup retrieves a specific group by its Id.
+// GetGroup retrieves a specific group by its id.
 func (gs *GroupService) GetGroup(groupID string) (*model.Group, error) {
 	if groupID == "" {
-		return nil, errors.New("group Id is empty")
+		return nil, errors.New("group id is empty")
 	}
 
 	group, err := store.GetGroup(groupID)
@@ -111,7 +111,7 @@ func (gs *GroupService) UpdateGroup(groupID string, request model.UpdateGroupReq
 	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, "GroupService"))
 
 	if groupID == "" {
-		return nil, errors.New("group Id is empty")
+		return nil, errors.New("group id is empty")
 	}
 
 	// Validate request
@@ -128,7 +128,7 @@ func (gs *GroupService) UpdateGroup(groupID string, request model.UpdateGroupReq
 
 	// Create updated group object
 	updatedGroup := model.Group{
-		Id:          existingGroup.Id,
+		ID:          existingGroup.ID,
 		Name:        request.Name,
 		Description: request.Description,
 		Parent:      request.Parent,
@@ -156,7 +156,7 @@ func (gs *GroupService) UpdateGroup(groupID string, request model.UpdateGroupReq
 // DeleteGroup deletes a group.
 func (gs *GroupService) DeleteGroup(groupID string) error {
 	if groupID == "" {
-		return errors.New("group Id is empty")
+		return errors.New("group id is empty")
 	}
 
 	err := store.DeleteGroup(groupID)
@@ -172,7 +172,7 @@ func validateCreateGroupRequest(request model.CreateGroupRequest) error {
 		return model.ErrInvalidRequest
 	}
 
-	if request.Parent.Type == "" || request.Parent.Id == "" {
+	if request.Parent.Type == "" || request.Parent.ID == "" {
 		return model.ErrInvalidRequest
 	}
 
@@ -189,7 +189,7 @@ func validateUpdateGroupRequest(request model.UpdateGroupRequest) error {
 		return model.ErrInvalidRequest
 	}
 
-	if request.Parent.Type == "" || request.Parent.Id == "" {
+	if request.Parent.Type == "" || request.Parent.ID == "" {
 		return model.ErrInvalidRequest
 	}
 

@@ -24,41 +24,28 @@ import (
 )
 
 var (
-	// QueryGetGroupList is the query to get all groups.
+	// QueryGetGroupList is the query to get all root groups.
 	QueryGetGroupList = dbmodel.DBQuery{
 		ID:    "GRQ-GROUP_MGT-01",
-		Query: `SELECT GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH FROM "GROUP"`,
-	}
-
-	// QueryGetGroupsByParent is the query to get groups by parent.
-	QueryGetGroupsByParent = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-02",
-		Query: `SELECT GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH FROM "GROUP" WHERE PARENT_GROUP_ID = $1`,
-	}
-
-	// QueryGetGroupsByOU is the query to get root groups by organization unit.
-	QueryGetGroupsByOU = dbmodel.DBQuery{
-		ID: "GRQ-GROUP_MGT-03",
-		Query: `SELECT GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH FROM "GROUP" ` +
-			`WHERE OU_ID = $1 AND PARENT_GROUP_ID IS NULL`,
+		Query: `SELECT GROUP_ID, OU_ID, NAME, DESCRIPTION, PATH FROM "GROUP" WHERE OU_ID IS NOT NULL AND PARENT_ID IS NULL`,
 	}
 
 	// QueryCreateGroup is the query to create a new group.
 	QueryCreateGroup = dbmodel.DBQuery{
-		ID:    "GRQ-GROUP_MGT-04",
-		Query: `INSERT INTO "GROUP" (GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH) VALUES ($1, $2, $3, $4, $5)`,
+		ID:    "GRQ-GROUP_MGT-02",
+		Query: `INSERT INTO "GROUP" (GROUP_ID, PARENT_ID, OU_ID, NAME, PATH) VALUES ($1, $2, $3, $4, $5)`,
 	}
 
-	// QueryGetGroupByID is the query to get a group by Id.
+	// QueryGetGroupByID is the query to get a group by id.
 	QueryGetGroupByID = dbmodel.DBQuery{
 		ID:    "GRQ-GROUP_MGT-05",
-		Query: `SELECT GROUP_ID, PARENT_GROUP_ID, OU_ID, NAME, PATH FROM "GROUP" WHERE GROUP_ID = $1`,
+		Query: `SELECT GROUP_ID, PARENT_ID, OU_ID, NAME, PATH FROM "GROUP" WHERE GROUP_ID = $1`,
 	}
 
 	// QueryUpdateGroup is the query to update a group.
 	QueryUpdateGroup = dbmodel.DBQuery{
 		ID: "GRQ-GROUP_MGT-06",
-		Query: `UPDATE "GROUP" SET PARENT_GROUP_ID = $2, OU_ID = $3, NAME = $4, PATH = $5, ` +
+		Query: `UPDATE "GROUP" SET PARENT_ID = $2, OU_ID = $3, NAME = $4, PATH = $5, ` +
 			`UPDATED_AT = datetime('now') WHERE GROUP_ID = $1`,
 	}
 
@@ -71,7 +58,7 @@ var (
 	// QueryGetChildGroups is the query to get child groups of a group.
 	QueryGetChildGroups = dbmodel.DBQuery{
 		ID:    "GRQ-GROUP_MGT-08",
-		Query: `SELECT GROUP_ID FROM "GROUP" WHERE PARENT_GROUP_ID = $1`,
+		Query: `SELECT GROUP_ID FROM "GROUP" WHERE PARENT_ID = $1`,
 	}
 
 	// QueryGetGroupUsers is the query to get users in a group.
@@ -95,13 +82,13 @@ var (
 	// QueryCheckGroupNameConflict is the query to check if a group name conflicts under the same parent.
 	QueryCheckGroupNameConflict = dbmodel.DBQuery{
 		ID:    "GRQ-GROUP_MGT-12",
-		Query: `SELECT COUNT(*) as count FROM "GROUP" WHERE NAME = $1 AND PARENT_GROUP_ID = $2 AND OU_ID = $3`,
+		Query: `SELECT COUNT(*) as count FROM "GROUP" WHERE NAME = $1 AND PARENT_ID = $2 AND OU_ID = $3`,
 	}
 
 	// QueryCheckGroupNameConflictForUpdate is the query to check name conflict during update.
 	QueryCheckGroupNameConflictForUpdate = dbmodel.DBQuery{
 		ID: "GRQ-GROUP_MGT-13",
-		Query: `SELECT COUNT(*) as count FROM "GROUP" WHERE NAME = $1 AND PARENT_GROUP_ID = $2 ` +
+		Query: `SELECT COUNT(*) as count FROM "GROUP" WHERE NAME = $1 AND PARENT_ID = $2 ` +
 			`AND OU_ID = $3 AND GROUP_ID != $4`,
 	}
 )

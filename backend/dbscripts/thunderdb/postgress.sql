@@ -50,6 +50,7 @@ CREATE TABLE "GROUP" (
     PARENT_GROUP_ID VARCHAR(36),
     OU_ID           VARCHAR(36)        NOT NULL,
     NAME            TEXT               NOT NULL,
+    DESCRIPTION     TEXT               NOT NULL,
     PATH            TEXT               NOT NULL,
     CREATED_AT      TIMESTAMPTZ DEFAULT NOW(),
     UPDATED_AT      TIMESTAMPTZ DEFAULT NOW(),

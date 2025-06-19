@@ -38,17 +38,9 @@ type GroupHandler struct {
 func (gh *GroupHandler) HandleGroupListRequest(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, "GroupHandler"))
 
-	// Get parent parameter from query string
-	parentID := r.URL.Query().Get("parent")
-	var parentIDPtr *string
-	if parentID != "" {
-		parentIDPtr = &parentID
-	}
-
-	// Get the groups list using the group service
 	groupProvider := provider.NewGroupProvider()
 	groupService := groupProvider.GetGroupService()
-	groups, err := groupService.GetGroupList(parentIDPtr)
+	groups, err := groupService.GetGroupList()
 	if err != nil {
 		if errors.Is(err, model.ErrParentNotFound) {
 			http.Error(w, "Not Found: Parent group not found.", http.StatusNotFound)
@@ -110,10 +102,10 @@ func (gh *GroupHandler) HandleGroupPostRequest(w http.ResponseWriter, r *http.Re
 	}
 
 	// Log the group creation response
-	logger.Debug("Group POST response sent", log.String("group id", createdGroup.Id))
+	logger.Debug("Group POST response sent", log.String("group id", createdGroup.ID))
 }
 
-// HandleGroupGetRequest handles the get group by Id request.
+// HandleGroupGetRequest handles the get group by id request.
 func (gh *GroupHandler) HandleGroupGetRequest(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, "GroupHandler"))
 
@@ -129,7 +121,7 @@ func (gh *GroupHandler) HandleGroupGetRequest(w http.ResponseWriter, r *http.Req
 	group, err := groupService.GetGroup(id)
 	if err != nil {
 		if errors.Is(err, model.ErrGroupNotFound) {
-			http.Error(w, "Not Found: The group with the specified Id does not exist.", http.StatusNotFound)
+			http.Error(w, "Not Found: The group with the specified id does not exist.", http.StatusNotFound)
 		} else {
 			http.Error(w, "Internal Server Error: "+
 				"An unexpected error occurred while processing the request.", http.StatusInternalServerError)
@@ -171,7 +163,7 @@ func (gh *GroupHandler) HandleGroupPutRequest(w http.ResponseWriter, r *http.Req
 	group, err := groupService.UpdateGroup(id, updateRequest)
 	if err != nil {
 		if errors.Is(err, model.ErrGroupNotFound) {
-			http.Error(w, "Not Found: The group with the specified Id does not exist.", http.StatusNotFound)
+			http.Error(w, "Not Found: The group with the specified id does not exist.", http.StatusNotFound)
 		} else if errors.Is(err, model.ErrGroupNameConflict) {
 			http.Error(w, "Conflict: A group with the same name exists under the same parent.", http.StatusConflict)
 		} else if errors.Is(err, model.ErrParentNotFound) {
@@ -213,7 +205,7 @@ func (gh *GroupHandler) HandleGroupDeleteRequest(w http.ResponseWriter, r *http.
 	err := groupService.DeleteGroup(id)
 	if err != nil {
 		if errors.Is(err, model.ErrGroupNotFound) {
-			http.Error(w, "Not Found: The group with the specified Id does not exist.", http.StatusNotFound)
+			http.Error(w, "Not Found: The group with the specified id does not exist.", http.StatusNotFound)
 		} else if errors.Is(err, model.ErrCannotDeleteGroupWithChildren) {
 			http.Error(w, "Bad Request: Cannot delete group with child groups.", http.StatusBadRequest)
 		} else {

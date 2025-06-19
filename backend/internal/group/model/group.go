@@ -27,29 +27,31 @@ import (
 type ParentType string
 
 const (
+	// ParentTypeOrganizationUnit is the type for organization units.
 	ParentTypeOrganizationUnit ParentType = "organizationUnit"
-	ParentTypeGroup            ParentType = "group"
+	// ParentTypeGroup is the type for groups.
+	ParentTypeGroup ParentType = "group"
 )
 
 // Parent represents the parent of a group (either organization unit or another group).
 type Parent struct {
 	Type ParentType `json:"type"` // "organizationUnit" or "group"
-	Id   string     `json:"id"`
+	ID   string     `json:"id"`
 }
 
 // GroupBasic represents the basic information of a group.
 type GroupBasic struct {
-	Id          string  `json:"id"`
-	Name        string  `json:"name"`
-	Description *string `json:"description,omitempty"`
-	Parent      Parent  `json:"parent"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	Parent      Parent `json:"parent"`
 }
 
 // Group represents a complete group with users and child groups.
 type Group struct {
-	Id          string   `json:"id"`
+	ID          string   `json:"id"`
 	Name        string   `json:"name"`
-	Description *string  `json:"description,omitempty"`
+	Description string   `json:"description,omitempty"`
 	Parent      Parent   `json:"parent"`
 	Users       []string `json:"users,omitempty"`
 	Groups      []string `json:"groups"`
@@ -58,7 +60,7 @@ type Group struct {
 // CreateGroupRequest represents the request body for creating a group.
 type CreateGroupRequest struct {
 	Name        string   `json:"name"`
-	Description *string  `json:"description,omitempty"`
+	Description string   `json:"description,omitempty"`
 	Parent      Parent   `json:"parent"`
 	Users       []string `json:"users,omitempty"`
 }
@@ -66,7 +68,7 @@ type CreateGroupRequest struct {
 // UpdateGroupRequest represents the request body for updating a group.
 type UpdateGroupRequest struct {
 	Name        string   `json:"name"`
-	Description *string  `json:"description,omitempty"`
+	Description string   `json:"description,omitempty"`
 	Parent      Parent   `json:"parent"`
 	Users       []string `json:"users,omitempty"`
 	Groups      []string `json:"groups,omitempty"`
