@@ -20,6 +20,7 @@
 package identify
 
 import (
+	"slices"
 	"strings"
 
 	flowconst "github.com/asgardeo/thunder/internal/flow/constants"
@@ -29,6 +30,8 @@ import (
 )
 
 const loggerComponentName = "IdentifyingExecutor"
+
+var nonSearchableAttributes = []string{"password", "code", "nonce", "otp"}
 
 // IdentifyingExecutor implements the ExecutorInterface for identifying users based on provided attributes.
 type IdentifyingExecutor struct {
@@ -48,10 +51,17 @@ func (i *IdentifyingExecutor) IdentifyUser(filters map[string]interface{},
 	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, loggerComponentName))
 	logger.Debug("Identifying user with filters")
 
+	// filter out non-searchable attributes
+	var searchableFilter = make(map[string]interface{})
+	for key, value := range filters {
+		if !slices.Contains(nonSearchableAttributes, key) {
+			searchableFilter[key] = value
+		}
+	}
+
 	userProvider := userprovider.NewUserProvider()
 	userService := userProvider.GetUserService()
-
-	userID, err := userService.IdentifyUser(filters)
+	userID, err := userService.IdentifyUser(searchableFilter)
 	if err != nil {
 		if strings.Contains(err.Error(), "user not found") {
 			logger.Debug("User not found for the provided filters")

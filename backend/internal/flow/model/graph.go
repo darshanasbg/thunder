@@ -29,6 +29,7 @@ import (
 // GraphInterface defines the graph structure
 type GraphInterface interface {
 	GetID() string
+	GetType() constants.GraphType
 	AddNode(node NodeInterface) error
 	GetNode(nodeID string) (NodeInterface, bool)
 	AddEdge(fromNodeID, toNodeID string) error
@@ -69,6 +70,11 @@ func NewGraph(id string, _type constants.GraphType) GraphInterface {
 // GetID returns the unique ID of the graph
 func (g *Graph) GetID() string {
 	return g.id
+}
+
+// GetType returns the type of the graph
+func (g *Graph) GetType() constants.GraphType {
+	return g._type
 }
 
 // AddNode adds a node to the graph

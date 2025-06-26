@@ -95,11 +95,10 @@ func (b *BasicAuthExecutor) Execute(ctx *flowmodel.NodeContext) (*flowmodel.Exec
 		return execResp, nil
 	}
 
-	username := ctx.UserInputData["username"]
 	// TODO: Should handle client errors here. Service should return a ServiceError and
 	//  client errors should be appended as a failure.
 	//  For the moment handling returned error as a authentication failure.
-	authenticatedUser, err := b.getAuthenticatedUser(username, ctx.UserInputData["password"], execResp)
+	authenticatedUser, err := b.getAuthenticatedUser(ctx, execResp)
 	if err != nil {
 		execResp.Status = flowconst.ExecFailure
 		execResp.FailureReason = "Failed to authenticate user: " + err.Error()
@@ -113,7 +112,7 @@ func (b *BasicAuthExecutor) Execute(ctx *flowmodel.NodeContext) (*flowmodel.Exec
 		execResp.FailureReason = "Authenticated user not found."
 		return execResp, nil
 	}
-	if !authenticatedUser.IsAuthenticated {
+	if !authenticatedUser.IsAuthenticated && ctx.FlowType != flowconst.GraphTypeRegistration {
 		execResp.Status = flowconst.ExecFailure
 		execResp.FailureReason = "User authentication failed."
 		return execResp, nil
@@ -162,16 +161,41 @@ func (b *BasicAuthExecutor) GetRequiredData(ctx *flowmodel.NodeContext) []flowmo
 
 // getAuthenticatedUser perform authentication based on the provided username and password and return
 // authenticated user details.
-func (b *BasicAuthExecutor) getAuthenticatedUser(username, password string,
+func (b *BasicAuthExecutor) getAuthenticatedUser(ctx *flowmodel.NodeContext,
 	execResp *flowmodel.ExecutorResponse) (*authnmodel.AuthenticatedUser, error) {
 	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, loggerComponentName),
 		log.String(log.LoggerKeyExecutorID, b.GetID()))
 
+	username := ctx.UserInputData["username"]
 	filters := map[string]interface{}{"username": username}
 	userID, err := b.IdentifyUser(filters, execResp)
 	if err != nil {
 		return nil, err
 	}
+
+	// Handle registration flows.
+	if ctx.FlowType == flowconst.GraphTypeRegistration {
+		if execResp.Status == flowconst.ExecFailure {
+			if execResp.FailureReason == "User not found" {
+				logger.Debug("User not found for the provided username. Proceeding with registration flow.")
+				execResp.Status = flowconst.ExecComplete
+
+				return &authnmodel.AuthenticatedUser{
+					IsAuthenticated: false,
+					Attributes: map[string]string{
+						"username": username,
+					},
+				}, nil
+			}
+			return nil, err
+		}
+
+		// At this point, a unique user is found in the system. Hence fail the execution.
+		execResp.Status = flowconst.ExecFailure
+		execResp.FailureReason = "User already exists with the provided username."
+		return nil, nil
+	}
+
 	if execResp.Status == flowconst.ExecFailure {
 		return nil, nil
 	}
@@ -179,7 +203,7 @@ func (b *BasicAuthExecutor) getAuthenticatedUser(username, password string,
 	userProvider := userprovider.NewUserProvider()
 	userService := userProvider.GetUserService()
 
-	user, err := userService.VerifyUser(*userID, "password", password)
+	user, err := userService.VerifyUser(*userID, "password", ctx.UserInputData["password"])
 	if err != nil {
 		logger.Error("Failed to verify user credentials", log.String("userID", *userID), log.Error(err))
 		return nil, err

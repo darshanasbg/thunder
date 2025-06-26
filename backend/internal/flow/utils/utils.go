@@ -27,6 +27,7 @@ import (
 	"github.com/asgardeo/thunder/internal/executor/basicauth"
 	"github.com/asgardeo/thunder/internal/executor/githubauth"
 	"github.com/asgardeo/thunder/internal/executor/googleauth"
+	"github.com/asgardeo/thunder/internal/executor/provision"
 	"github.com/asgardeo/thunder/internal/executor/smsauth"
 	"github.com/asgardeo/thunder/internal/flow/constants"
 	"github.com/asgardeo/thunder/internal/flow/jsonmodel"
@@ -149,6 +150,8 @@ func getGraphType(graphType string) (constants.GraphType, error) {
 	switch graphType {
 	case string(constants.GraphTypeAuthentication):
 		return constants.GraphTypeAuthentication, nil
+	case string(constants.GraphTypeRegistration):
+		return constants.GraphTypeRegistration, nil
 	default:
 		return "", fmt.Errorf("unsupported graph type: %s", graphType)
 	}
@@ -177,17 +180,25 @@ func getExecutorConfigByName(execDef jsonmodel.ExecutorDefinition) (*model.Execu
 		}
 	case "GithubOAuthExecutor":
 		executor = model.ExecutorConfig{
-			Name:    "GithubOAuthExecutor",
-			IdpName: execDef.IdpName,
+			Name:       "GithubOAuthExecutor",
+			IdpName:    execDef.IdpName,
+			Properties: execDef.Properties,
 		}
 	case "GoogleOIDCAuthExecutor":
 		executor = model.ExecutorConfig{
-			Name:    "GoogleOIDCAuthExecutor",
-			IdpName: execDef.IdpName,
+			Name:       "GoogleOIDCAuthExecutor",
+			IdpName:    execDef.IdpName,
+			Properties: execDef.Properties,
 		}
 	case "AttributeCollector":
 		executor = model.ExecutorConfig{
-			Name: "AttributeCollector",
+			Name:       "AttributeCollector",
+			Properties: execDef.Properties,
+		}
+	case "ProvisioningExecutor":
+		executor = model.ExecutorConfig{
+			Name:       "ProvisioningExecutor",
+			Properties: execDef.Properties,
 		}
 	case "AuthAssertExecutor":
 		executor = model.ExecutorConfig{
@@ -265,6 +276,9 @@ func GetExecutorByName(execConfig *model.ExecutorConfig) (model.ExecutorInterfac
 			clientID, clientSecret, redirectURI, scopes, additionalParams)
 	case "AttributeCollector":
 		executor = attributecollect.NewAttributeCollector("attribute-collector", "AttributeCollector",
+			execConfig.Properties)
+	case "ProvisioningExecutor":
+		executor = provision.NewProvisioningExecutor("provisioning-executor", "ProvisioningExecutor",
 			execConfig.Properties)
 	case "AuthAssertExecutor":
 		executor = authassert.NewAuthAssertExecutor("auth-assert-executor", "AuthAssertExecutor",

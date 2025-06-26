@@ -27,6 +27,7 @@ import (
 // EngineContext holds the overall context used by the flow engine during execution.
 type EngineContext struct {
 	FlowID        string
+	FlowType      constants.GraphType
 	AppID         string
 	UserInputData map[string]string
 	RuntimeData   map[string]string
@@ -43,6 +44,7 @@ type EngineContext struct {
 // NodeContext holds the context for a specific node in the flow execution.
 type NodeContext struct {
 	FlowID          string
+	FlowType        constants.GraphType
 	AppID           string
 	CurrentActionID string
 

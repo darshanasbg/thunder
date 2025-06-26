@@ -133,6 +133,7 @@ func (s *FlowService) initContext(appID string, logger *log.Logger) (*model.Engi
 		logger.Error("Graph not found for the graph id")
 		return nil, &constants.ErrorFlowGraphNotFound
 	}
+	ctx.FlowType = graph.GetType()
 	ctx.Graph = graph
 	ctx.AppID = appID
 

@@ -25,6 +25,8 @@ type GraphType string
 const (
 	// GraphTypeAuthentication represents a graph type for authentication flows.
 	GraphTypeAuthentication GraphType = "AUTHENTICATION"
+	// GraphTypeRegistration represents a graph type for registration flows.
+	GraphTypeRegistration GraphType = "REGISTRATION"
 )
 
 // FlowStatus defines the status of a flow execution.

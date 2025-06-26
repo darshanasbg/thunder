@@ -919,7 +919,7 @@ curl -kL -H 'Content-Type: application/json' https://localhost:8090/users \
 
 ### ✅ Prerequisites
 
-- Go 1.23+
+- Go 1.24+
 - Node.js 14+
 
 ---
@@ -939,7 +939,7 @@ make all
 
 ### Prerequisites
 
-- Go 1.23+
+- Go 1.24+
 - Node.js 14+
 
 ### Start Thunder in Development Mode
