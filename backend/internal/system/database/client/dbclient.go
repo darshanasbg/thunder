@@ -96,6 +96,10 @@ func (client *DBClient) Query(query model.DBQuery, args ...interface{}) ([]map[s
 		results = append(results, result)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return results, nil
 }
 
