@@ -4,7 +4,7 @@ This is the gate app for project thunder. Which serves UIs for Login, Registrati
 
 ### ✅ Prerequisites
 
-- Node.js 14+
+- Node.js 20+
 - PNPM 10+
 
 ---
