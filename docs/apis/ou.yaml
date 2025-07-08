@@ -465,6 +465,76 @@ components:
         default: 0
 
   schemas:
+    OrganizationUnitBasic:
+      type: object
+      required: [id, name, handle]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        handle:
+          type: string
+        description:
+          type: string
+
+    OrganizationUnit:
+      allOf:
+        - $ref: '#/components/schemas/OrganizationUnitBasic'
+      properties:
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+
+    User:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+          format: uuid
+
+    Group:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+
+    Link:
+      type: object
+      properties:
+        href:
+          type: string
+          example: "organization-units?offset=20&limit=10"
+        rel:
+          type: string
+          example: "next"
+
+    CreateOrganizationUnitRequest:
+      type: object
+      required: [name, handle, parent]
+      properties:
+        name:
+          type: string
+        handle:
+          type: string
+        description:
+          type: string
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+
+    UpdateOrganizationUnitRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateOrganizationUnitRequest'
+
     OrganizationUnitListResponse:
       type: object
       properties:
@@ -536,76 +606,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Link'
-
-    OrganizationUnitBasic:
-      type: object
-      required: [id, name, handle]
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        handle:
-          type: string
-        description:
-          type: string
-
-    OrganizationUnit:
-      allOf:
-        - $ref: '#/components/schemas/OrganizationUnitBasic'
-      properties:
-        parent:
-          type: string
-          format: uuid
-          nullable: true
-
-    CreateOrganizationUnitRequest:
-      type: object
-      required: [name, handle, parent]
-      properties:
-        name:
-          type: string
-        handle:
-          type: string
-        description:
-          type: string
-        parent:
-          type: string
-          format: uuid
-          nullable: true
-
-    UpdateOrganizationUnitRequest:
-      allOf:
-        - $ref: '#/components/schemas/CreateOrganizationUnitRequest'
-
-    User:
-      type: object
-      required: [id]
-      properties:
-        id:
-          type: string
-          format: uuid
-
-    Group:
-      type: object
-      required: [id, name]
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-
-    Link:
-      type: object
-      properties:
-        href:
-          type: string
-          example: "organization-units?offset=20&limit=10"
-        rel:
-          type: string
-          example: "next"
 
     Error:
       type: object
