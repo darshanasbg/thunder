@@ -25,24 +25,32 @@ paths:
       tags:
         - organization-units
       summary: List root organization units
+      parameters:
+        - $ref: '#/components/parameters/limitQueryParam'
+        - $ref: '#/components/parameters/offsetQueryParam'
       responses:
         "200":
           description: List of root organization units
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/OrganizationUnitBasic'
+                $ref: '#/components/schemas/OrganizationUnitListResponse'
               example:
-                - id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
-                  name: "Engineering"
-                  handle: "engineering"
-                  description: "Engineering Unit"
-                - id: "b7c40de6-95cd-4c45-8725-9c7cb5b9cafd"
-                  name: "Sales"
-                  handle: "sales"
-                  description: "Sales Unit"
+                totalResults: 2
+                startIndex: 1
+                count: 2
+                organizationUnits:
+                  - id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
+                    name: "Engineering"
+                    handle: "engineering"
+                    description: "Engineering Unit"
+                  - id: "b7c40de6-95cd-4c45-8725-9c7cb5b9cafd"
+                    name: "Sales"
+                    handle: "sales"
+                    description: "Sales Unit"
+                links:
+                  - href: "organization-units?offset=2&limit=2"
+                    rel: "next"
         "500":
           description: Internal server error
 
@@ -306,24 +314,31 @@ paths:
           schema:
             type: string
             format: uuid
+        - $ref: '#/components/parameters/limitQueryParam'
+        - $ref: '#/components/parameters/offsetQueryParam'
       responses:
         "200":
           description: List of child organization units
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/OrganizationUnitBasic'
+                $ref: '#/components/schemas/OrganizationUnitListResponse'
               example:
-                - id: "6b59f277-fd79-40b1-afca-dce75d3709f7"
-                  name: "Frontend Team"
-                  handle: "frontend-team"
-                  description: "Handles UI/UX work"
-                - id: "2a8f9e1c-4d7b-4c8a-9f3e-1b2c3d4e5f6g"
-                  name: "Backend Team"
-                  handle: "backend-team"
-                  description: "Handles server-side development"
+                totalResults: 2
+                startIndex: 1
+                count: 2
+                organizationUnits:
+                  - id: "6b59f277-fd79-40b1-afca-dce75d3709f7"
+                    name: "Frontend Team"
+                    handle: "frontend-team"
+                    description: "Handles UI/UX work"
+                  - id: "2a8f9e1c-4d7b-4c8a-9f3e-1b2c3d4e5f6g"
+                    name: "Backend Team"
+                    handle: "backend-team"
+                    description: "Handles server-side development"
+                links:
+                  - href: "organization-units/afc77cfd-620b-4cf0-a31c-7377b0ea8902/ous?offset=2&limit=2"
+                    rel: "next"
         "404":
           description: Organization unit not found
           content:
@@ -349,18 +364,25 @@ paths:
           schema:
             type: string
             format: uuid
+        - $ref: '#/components/parameters/limitQueryParam'
+        - $ref: '#/components/parameters/offsetQueryParam'
       responses:
         "200":
           description: List of users in the organization unit
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserListResponse'
               example:
-                - id: "3f9d5c8e-3c56-4f09-a1db-bb3d5e3f4b5d"
-                - id: "9f4bc2ee-8d1e-4e21-a3b4-17d9b612e320"
+                totalResults: 2
+                startIndex: 1
+                count: 2
+                users:
+                  - id: "3f9d5c8e-3c56-4f09-a1db-bb3d5e3f4b5d"
+                  - id: "9f4bc2ee-8d1e-4e21-a3b4-17d9b612e320"
+                links:
+                  - href: "organization-units/afc77cfd-620b-4cf0-a31c-7377b0ea8902/users?offset=2&limit=2"
+                    rel: "next"
         "404":
           description: Organization unit not found
           content:
@@ -386,20 +408,27 @@ paths:
           schema:
             type: string
             format: uuid
+        - $ref: '#/components/parameters/limitQueryParam'
+        - $ref: '#/components/parameters/offsetQueryParam'
       responses:
         "200":
           description: List of groups in the organization unit
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Group'
+                $ref: '#/components/schemas/GroupListResponse'
               example:
-                - id: "c2a4f62d-7c79-46f2-b2de-8e8cb4f1c456"
-                  name: "Developers"
-                - id: "8a8e4fa2-2e55-478d-bf0f-4a2ddaf9ee7d"
-                  name: "Architects"
+                totalResults: 2
+                startIndex: 1
+                count: 2
+                groups:
+                  - id: "c2a4f62d-7c79-46f2-b2de-8e8cb4f1c456"
+                    name: "Developers"
+                  - id: "8a8e4fa2-2e55-478d-bf0f-4a2ddaf9ee7d"
+                    name: "Architects"
+                links:
+                  - href: "organization-units/afc77cfd-620b-4cf0-a31c-7377b0ea8902/groups?offset=2&limit=2"
+                    rel: "next"
         "404":
           description: Organization unit not found
           content:
@@ -414,7 +443,100 @@ paths:
           description: Internal server error
 
 components:
+  parameters:
+    limitQueryParam:
+      in: query
+      name: limit
+      required: false
+      description: |
+        Maximum number of records to return.
+      schema:
+        type: integer
+        minimum: 1
+        default: 30
+    offsetQueryParam:
+      in: query
+      name: offset
+      required: false
+      description: |
+        Number of records to skip for pagination.
+      schema:
+        type: integer
+        default: 0
+
   schemas:
+    OrganizationUnitListResponse:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          description: "Number of results that match the listing operation."
+          example: 15
+        startIndex:
+          type: integer
+          description: "Index of the first element of the page, which will be equal to offset + 1."
+          example: 1
+        count:
+          type: integer
+          description: "Number of elements in the returned page."
+          example: 10
+        organizationUnits:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganizationUnitBasic'
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+
+    UserListResponse:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          description: "Number of results that match the listing operation."
+          example: 25
+        startIndex:
+          type: integer
+          description: "Index of the first element of the page, which will be equal to offset + 1."
+          example: 1
+        count:
+          type: integer
+          description: "Number of elements in the returned page."
+          example: 10
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+
+    GroupListResponse:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          description: "Number of results that match the listing operation."
+          example: 8
+        startIndex:
+          type: integer
+          description: "Index of the first element of the page, which will be equal to offset + 1."
+          example: 1
+        count:
+          type: integer
+          description: "Number of elements in the returned page."
+          example: 5
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/Group'
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+
     OrganizationUnitBasic:
       type: object
       required: [id, name, handle]
@@ -457,17 +579,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/CreateOrganizationUnitRequest'
 
-    Error:
-      type: object
-      required: [code, message]
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        description:
-          type: string
-
     User:
       type: object
       required: [id]
@@ -484,4 +595,25 @@ components:
           type: string
           format: uuid
         name:
+          type: string
+
+    Link:
+      type: object
+      properties:
+        href:
+          type: string
+          example: "organization-units?offset=20&limit=10"
+        rel:
+          type: string
+          example: "next"
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        description:
           type: string
