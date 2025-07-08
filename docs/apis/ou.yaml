@@ -158,15 +158,6 @@ paths:
                 handle: "engineering-team"
                 description: "Engineering unit that handles all engineering tasks"
                 parent: null
-                users:
-                  - "3f9d5c8e-3c56-4f09-a1db-bb3d5e3f4b5d"
-                  - "9f4bc2ee-8d1e-4e21-a3b4-17d9b612e320"
-                  - "20eb225a-e8c3-4ccf-9d47-b659e26014d7"
-                groups:
-                  - "c2a4f62d-7c79-46f2-b2de-8e8cb4f1c456"
-                  - "8a8e4fa2-2e55-478d-bf0f-4a2ddaf9ee7d"
-                organizationUnits:
-                  - "6b59f277-fd79-40b1-afca-dce75d3709f7"
         "404":
           description: Organization unit not found
           content:
@@ -215,15 +206,6 @@ paths:
                 handle: "engineering-team"
                 description: "Engineering unit that handles all engineering tasks"
                 parent: null
-                users:
-                  - "3f9d5c8e-3c56-4f09-a1db-bb3d5e3f4b5d"
-                  - "9f4bc2ee-8d1e-4e21-a3b4-17d9b612e320"
-                  - "20eb225a-e8c3-4ccf-9d47-b659e26014d7"
-                groups:
-                  - "c2a4f62d-7c79-46f2-b2de-8e8cb4f1c456"
-                  - "8a8e4fa2-2e55-478d-bf0f-4a2ddaf9ee7d"
-                organizationUnits:
-                  - "6b59f277-fd79-40b1-afca-dce75d3709f7"
         "400":
           description: Bad request
           content:
@@ -455,21 +437,6 @@ components:
           type: string
           format: uuid
           nullable: true
-        organizationUnits:
-          type: array
-          items:
-            type: string
-            format: uuid
-        users:
-          type: array
-          items:
-            type: string
-            format: uuid
-        groups:
-          type: array
-          items:
-            type: string
-            format: uuid
 
     CreateOrganizationUnitRequest:
       type: object
