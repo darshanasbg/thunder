@@ -37,12 +37,14 @@ paths:
               example:
                 - id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
                   name: "Engineering"
+                  handle: "engineering"
                   description: "Engineering Unit"
                   parent: null
                   organizationUnits:
                     - "6b59f277-fd79-40b1-afca-dce75d3709f7"
                 - id: "b7c40de6-95cd-4c45-8725-9c7cb5b9cafd"
                   name: "Sales"
+                  handle: "sales"
                   description: "Sales Unit"
                   parent: null
                   organizationUnits: []
@@ -64,12 +66,14 @@ paths:
                 summary: Root organization unit
                 value:
                   name: "Engineering"
+                  handle: "engineering"
                   description: "Engineering Unit"
                   parent: null
               nested-ou:
                 summary: Nested organization unit
                 value:
                   name: "Frontend Team"
+                  handle: "frontend-team"
                   description: "Handles UI/UX work"
                   parent: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
       responses:
@@ -85,6 +89,7 @@ paths:
                   value:
                     id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
                     name: "Engineering"
+                    handle: "engineering"
                     description: "Engineering Unit"
                     parent: null
                 nested-ou:
@@ -92,6 +97,7 @@ paths:
                   value:
                     id: "4d4cb83a-9bb8-4fd7-970e-36b65f9c8ea4"
                     name: "Frontend Team"
+                    handle: "frontend-team"
                     description: "Handles UI/UX work"
                     parent: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
         "400":
@@ -154,6 +160,7 @@ paths:
               example:
                 id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
                 name: "Engineering Team"
+                handle: "engineering-team"
                 description: "Engineering unit that handles all engineering tasks"
                 parent: null
                 users:
@@ -197,6 +204,7 @@ paths:
               $ref: '#/components/schemas/UpdateOrganizationUnitRequest'
             example:
               name: "Engineering Team"
+              handle: "engineering-team"
               description: "Engineering unit that handles all engineering tasks"
               parent: null
       responses:
@@ -209,6 +217,7 @@ paths:
               example:
                 id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
                 name: "Engineering Team"
+                handle: "engineering-team"
                 description: "Engineering unit that handles all engineering tasks"
                 parent: null
                 users:
@@ -312,12 +321,14 @@ components:
   schemas:
     OrganizationUnitBasic:
       type: object
-      required: [id, name, parent, organizationUnits]
+      required: [id, name, handle, parent, organizationUnits]
       properties:
         id:
           type: string
           format: uuid
         name:
+          type: string
+        handle:
           type: string
         description:
           type: string
@@ -348,9 +359,11 @@ components:
 
     CreateOrganizationUnitRequest:
       type: object
-      required: [name, parent]
+      required: [name, handle, parent]
       properties:
         name:
+          type: string
+        handle:
           type: string
         description:
           type: string
