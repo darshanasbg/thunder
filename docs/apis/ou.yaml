@@ -24,10 +24,10 @@ paths:
     get:
       tags:
         - organization-units
-      summary: List organization units
+      summary: List root organization units
       responses:
         "200":
-          description: List of organization units
+          description: List of root organization units
           content:
             application/json:
               schema:
