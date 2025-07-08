@@ -76,7 +76,7 @@ paths:
                 summary: Nested organization unit
                 value:
                   name: "Frontend Team"
-                  handle: "frontend-team"
+                  handle: "frontend"
                   description: "Handles UI/UX work"
                   parent: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
       responses:
@@ -100,7 +100,7 @@ paths:
                   value:
                     id: "4d4cb83a-9bb8-4fd7-970e-36b65f9c8ea4"
                     name: "Frontend Team"
-                    handle: "frontend-team"
+                    handle: "frontend"
                     description: "Handles UI/UX work"
                     parent: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
         "400":
@@ -163,7 +163,7 @@ paths:
               example:
                 id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
                 name: "Engineering Team"
-                handle: "engineering-team"
+                handle: "engineering"
                 description: "Engineering unit that handles all engineering tasks"
                 parent: null
         "404":
@@ -198,7 +198,7 @@ paths:
               $ref: '#/components/schemas/UpdateOrganizationUnitRequest'
             example:
               name: "Engineering Team"
-              handle: "engineering-team"
+              handle: "engineering"
               description: "Engineering unit that handles all engineering tasks"
               parent: null
       responses:
@@ -211,7 +211,7 @@ paths:
               example:
                 id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
                 name: "Engineering Team"
-                handle: "engineering-team"
+                handle: "engineering"
                 description: "Engineering unit that handles all engineering tasks"
                 parent: null
         "400":
@@ -330,11 +330,11 @@ paths:
                 organizationUnits:
                   - id: "6b59f277-fd79-40b1-afca-dce75d3709f7"
                     name: "Frontend Team"
-                    handle: "frontend-team"
+                    handle: "frontend"
                     description: "Handles UI/UX work"
                   - id: "2a8f9e1c-4d7b-4c8a-9f3e-1b2c3d4e5f6g"
                     name: "Backend Team"
-                    handle: "backend-team"
+                    handle: "backend"
                     description: "Handles server-side development"
                 links:
                   - href: "organization-units/afc77cfd-620b-4cf0-a31c-7377b0ea8902/ous?offset=2&limit=2"
