@@ -592,7 +592,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GroupWithUsers'
+                $ref: '#/components/schemas/Group'
               examples:
                 simple-group:
                   summary: Group created under single-level path
@@ -604,8 +604,6 @@ paths:
                     parent:
                       type: "group"
                       id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-                    users:
-                      - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
                 nested-group:
                   summary: Group created under multi-level path
                   value:
@@ -616,8 +614,6 @@ paths:
                     parent:
                       type: "group"
                       id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-                    users:
-                      - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
         "400":
           description: Bad request
           content:
