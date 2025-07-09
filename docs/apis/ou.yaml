@@ -510,7 +510,7 @@ paths:
         "500":
           description: Internal server error
 
-  /organization-units/path/{handlePath}:
+  /organization-units/tree/{handlePath}:
     get:
       tags:
         - organization-units-by-path
@@ -576,7 +576,7 @@ paths:
         "500":
           description: Internal server error
 
-  /organization-units/path/{handlePath}/ous:
+  /organization-units/tree/{handlePath}/ous:
     post:
       tags:
         - organization-units-by-path
