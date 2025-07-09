@@ -309,17 +309,7 @@ paths:
                   value:
                     code: "OU-1006"
                     message: "Organization unit has children"
-                    description: "Cannot delete organization unit with children or users/groups"
-        "404":
-          description: Organization unit not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              example:
-                code: "OU-1003"
-                message: "Organization unit not found"
-                description: "The organization unit with the specified id does not exist"
+                    description: "Cannot delete organization unit with children or users or groups"
         "500":
           description: Internal server error
 
