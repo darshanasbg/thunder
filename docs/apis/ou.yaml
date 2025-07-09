@@ -18,7 +18,7 @@ servers:
 tags:
   - name: organization-units
     description: Operations related to organization unit management
-  - name: organization-units-by-handle
+  - name: organization-units-by-path
     description: Operations related to organization units using hierarchical handle paths
 
 paths:
@@ -510,10 +510,10 @@ paths:
         "500":
           description: Internal server error
 
-  /organization-units/by-handle/{handlePath}:
+  /organization-units/path/{handlePath}:
     get:
       tags:
-        - organization-units-by-handle
+        - organization-units-by-path
       summary: Get an organization unit by hierarchical handle path
       parameters:
         - in: path
@@ -576,10 +576,10 @@ paths:
         "500":
           description: Internal server error
 
-  /organization-units/by-handle/{handlePath}/children:
+  /organization-units/path/{handlePath}/children:
     post:
       tags:
-        - organization-units-by-handle
+        - organization-units-by-path
       summary: Create a new organization unit under the specified handle path
       parameters:
         - in: path
@@ -677,7 +677,7 @@ paths:
 
     get:
       tags:
-        - organization-units-by-handle
+        - organization-units-by-path
       summary: List child organization units by handle path
       parameters:
         - in: path
@@ -716,7 +716,7 @@ paths:
                     handle: "backend"
                     description: "Handles server-side development"
                 links:
-                  - href: "organization-units/by-handle/engineering/children?offset=2&limit=2"
+                  - href: "organization-units/path/engineering/children?offset=2&limit=2"
                     rel: "next"
         "400":
           description: Bad request
@@ -759,10 +759,10 @@ paths:
         "500":
           description: Internal server error
 
-  /organization-units/by-handle/{handlePath}/users:
+  /organization-units/path/{handlePath}/users:
     get:
       tags:
-        - organization-units-by-handle
+        - organization-units-by-path
       summary: List users in organization unit by handle path
       parameters:
         - in: path
@@ -795,7 +795,7 @@ paths:
                   - id: "3f9d5c8e-3c56-4f09-a1db-bb3d5e3f4b5d"
                   - id: "9f4bc2ee-8d1e-4e21-a3b4-17d9b612e320"
                 links:
-                  - href: "organization-units/by-handle/engineering/frontend/users?offset=2&limit=2"
+                  - href: "organization-units/path/engineering/frontend/users?offset=2&limit=2"
                     rel: "next"
         "400":
           description: Bad request
@@ -838,10 +838,10 @@ paths:
         "500":
           description: Internal server error
 
-  /organization-units/by-handle/{handlePath}/groups:
+  /organization-units/path/{handlePath}/groups:
     get:
       tags:
-        - organization-units-by-handle
+        - organization-units-by-path
       summary: List groups in organization unit by handle path
       parameters:
         - in: path
@@ -876,7 +876,7 @@ paths:
                   - id: "8a8e4fa2-2e55-478d-bf0f-4a2ddaf9ee7d"
                     name: "Architects"
                 links:
-                  - href: "organization-units/by-handle/engineering/frontend/groups?offset=2&limit=2"
+                  - href: "organization-units/path/engineering/frontend/groups?offset=2&limit=2"
                     rel: "next"
         "400":
           description: Bad request
