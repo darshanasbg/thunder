@@ -18,8 +18,6 @@ servers:
 tags:
   - name: groups
     description: Operations related to group management
-  - name: groups-by-path
-    description: Operations related to groups using hierarchical handle paths
 
 paths:
   /groups:
@@ -43,14 +41,12 @@ paths:
                 count: 2
                 groups:
                   - id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                    handle: "sports"
                     name: "Sports"
                     description: "Sports group"
                     parent:
                       type: "organizationUnit"
                       id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                   - id: "257e528f-eb24-48b6-884d-20460e190957"
-                    handle: "managers"
                     name: "Managers"
                     description: "Manager group"
                     parent:
@@ -106,7 +102,6 @@ paths:
               root-group:
                 summary: Root group
                 value:
-                  handle: "sports"
                   name: "Sports"
                   description: "Sports group"
                   parent:
@@ -118,7 +113,6 @@ paths:
               nested-group:
                 summary: Nested group
                 value:
-                  handle: "hockey"
                   name: "Hockey"
                   description: "Hockey group"
                   parent:
@@ -138,7 +132,6 @@ paths:
                   summary: Root group
                   value:
                     id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                    handle: "sports"
                     name: "Sports"
                     description: "Sports group"
                     parent:
@@ -148,7 +141,6 @@ paths:
                   summary: Nested group
                   value:
                     id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-                    handle: "hockey"
                     name: "Hockey"
                     description: "Hockey group"
                     parent:
@@ -218,7 +210,6 @@ paths:
                 $ref: '#/components/schemas/Group'
               example:
                 id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                handle: "sports"
                 name: "Sports"
                 description: "Sports group"
                 parent:
@@ -270,7 +261,6 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateGroupRequest'
             example:
-              handle: "activities"
               name: "Activities"
               description: "Activities group"
               parent:
@@ -289,7 +279,6 @@ paths:
                 $ref: '#/components/schemas/Group'
               example:
                 id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                handle: "activities"
                 name: "Activities"
                 description: "Activities group"
                 parent:
@@ -422,14 +411,12 @@ paths:
                 count: 2
                 groups:
                   - id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-                    handle: "hockey"
                     name: "Hockey"
                     description: "Hockey group"
                     parent:
                       type: "group"
                       id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                   - id: "8c2f8e9e-8f2a-4f5b-9c3d-4e5f6a7b8c9d"
-                    handle: "football"
                     name: "Football"
                     description: "Football group"
                     parent:
@@ -543,373 +530,6 @@ paths:
                 type: string
               example: "Internal server error"
 
-  /groups/tree/{handlePath}:
-    post:
-      tags:
-        - groups-by-path
-      summary: Create a new group under the specified handle path
-      parameters:
-        - in: path
-          name: handlePath
-          required: true
-          schema:
-            type: string
-          style: simple
-          explode: false
-          description: |
-            Hierarchical path of the parent group handles separated by forward slashes.
-            The new group will be created as a child of the group specified by this path.
-            Examples:
-            - `sports` - Creates a new group under the "sports" group
-            - `sports/hockey` - Creates a new group under "sports/hockey"
-          example: "sports/hockey"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateGroupByHandleRequest'
-            examples:
-              simple-group:
-                summary: Create group under single-level path
-                value:
-                  handle: "nhl"
-                  name: "NHL"
-                  description: "National Hockey League"
-                  users:
-                    - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
-              nested-group:
-                summary: Create group under multi-level path
-                value:
-                  handle: "college"
-                  name: "College Hockey"
-                  description: "College hockey teams"
-                  users:
-                    - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
-      responses:
-        "201":
-          description: Group created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-              examples:
-                simple-group:
-                  summary: Group created under single-level path
-                  value:
-                    id: "8c2f8e9e-8f2a-4f5b-9c3d-4e5f6a7b8c9d"
-                    handle: "nhl"
-                    name: "NHL"
-                    description: "National Hockey League"
-                    parent:
-                      type: "group"
-                      id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-                nested-group:
-                  summary: Group created under multi-level path
-                  value:
-                    id: "9d3e9f0f-9f3b-5f6c-0d4e-5f6a7b8c9d0e"
-                    handle: "college"
-                    name: "College Hockey"
-                    description: "College hockey teams"
-                    parent:
-                      type: "group"
-                      id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              examples:
-                invalid-request:
-                  summary: Invalid request format
-                  value:
-                    code: "GRP-1001"
-                    message: "Invalid request format"
-                    description: "The request body is malformed or contains invalid data"
-                invalid-parent-path:
-                  summary: Parent path not found
-                  value:
-                    code: "GRP-1008"
-                    message: "Group not found"
-                    description: "The specified parent handle path does not exist"
-                handle-conflict:
-                  summary: Handle already exists under parent
-                  value:
-                    code: "GRP-1010"
-                    message: "Handle conflict"
-                    description: "A group with the same handle already exists under the specified parent path"
-        "404":
-          description: Parent group not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              example:
-                code: "GRP-1008"
-                message: "Group not found"
-                description: "The specified parent handle path does not exist"
-        "500":
-          description: Internal server error
-          content:
-            text/plain:
-              schema:
-                type: string
-              example: "Internal server error"
-    get:
-      tags:
-        - groups-by-path
-      summary: Get a group by hierarchical handle path
-      parameters:
-        - in: path
-          name: handlePath
-          required: true
-          schema:
-            type: string
-          style: simple
-          explode: false
-          description: |
-            Hierarchical path of group handles separated by forward slashes.
-            Examples:
-            - `sports` - Gets the root group with handle "sports"
-            - `sports/hockey` - Gets the "hockey" group under "sports"
-            - `sports/hockey/nhl` - Gets the "nhl" group under "sports/hockey"
-          example: "sports/hockey"
-      responses:
-        "200":
-          description: Group details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-              examples:
-                single-level:
-                  summary: Single level handle
-                  value:
-                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                    handle: "sports"
-                    name: "Sports"
-                    description: "Sports group"
-                    parent:
-                      type: "organizationUnit"
-                      id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
-                multi-level:
-                  summary: Multi-level handle path
-                  value:
-                    id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-                    handle: "hockey"
-                    name: "Hockey"
-                    description: "Hockey group"
-                    parent:
-                      type: "group"
-                      id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-        "404":
-          description: Group not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              examples:
-                path-not-found:
-                  summary: Handle path not found
-                  value:
-                    code: "GRP-1008"
-                    message: "Group not found"
-                    description: "The group with the specified handle path does not exist"
-                invalid-path:
-                  summary: Invalid path structure
-                  value:
-                    code: "GRP-1009"
-                    message: "Invalid handle path"
-                    description: "The handle path does not represent a valid group hierarchy"
-        "500":
-          description: Internal server error
-          content:
-            text/plain:
-              schema:
-                type: string
-              example: "Internal server error"
-
-  /groups/tree/{handlePath}/groups:
-    get:
-      tags:
-        - groups-by-path
-      summary: List child groups by handle path
-      parameters:
-        - in: path
-          name: handlePath
-          required: true
-          schema:
-            type: string
-          style: simple
-          explode: false
-          description: |
-            Hierarchical path of group handles separated by forward slashes.
-            Examples:
-            - `sports` - Lists children of the "sports" group
-            - `sports/hockey` - Lists children of "sports/hockey"
-          example: "sports/hockey"
-        - $ref: '#/components/parameters/limitQueryParam'
-        - $ref: '#/components/parameters/offsetQueryParam'
-      responses:
-        "200":
-          description: List of child groups
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GroupListResponse'
-              example:
-                totalResults: 2
-                startIndex: 1
-                count: 2
-                groups:
-                  - id: "8c2f8e9e-8f2a-4f5b-9c3d-4e5f6a7b8c9d"
-                    handle: "nhl"
-                    name: "NHL"
-                    description: "National Hockey League"
-                    parent:
-                      type: "group"
-                      id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-                  - id: "9d3e9f0f-9f3b-5f6c-0d4e-5f6a7b8c9d0e"
-                    handle: "college"
-                    name: "College Hockey"
-                    description: "College hockey teams"
-                    parent:
-                      type: "group"
-                      id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-                links:
-                  - href: "groups/tree/sports/hockey/groups?offset=2&limit=2"
-                    rel: "next"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              examples:
-                invalid-limit:
-                  summary: Invalid limit parameter
-                  value:
-                    code: "GRP-1001"
-                    message: "Invalid request format"
-                    description: "Invalid limit parameter value"
-                invalid-offset:
-                  summary: Invalid offset parameter
-                  value:
-                    code: "GRP-1001"
-                    message: "Invalid request format"
-                    description: "Invalid offset parameter value"
-        "404":
-          description: Group not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              examples:
-                path-not-found:
-                  summary: Handle path not found
-                  value:
-                    code: "GRP-1008"
-                    message: "Group not found"
-                    description: "The group with the specified handle path does not exist"
-                invalid-path:
-                  summary: Invalid path structure
-                  value:
-                    code: "GRP-1009"
-                    message: "Invalid handle path"
-                    description: "The handle path does not represent a valid group hierarchy"
-        "500":
-          description: Internal server error
-          content:
-            text/plain:
-              schema:
-                type: string
-              example: "Internal server error"
-
-  /groups/tree/{handlePath}/users:
-    get:
-      tags:
-        - groups-by-path
-      summary: List users in group by handle path
-      parameters:
-        - in: path
-          name: handlePath
-          required: true
-          schema:
-            type: string
-          style: simple
-          explode: false
-          description: |
-            Hierarchical path of group handles separated by forward slashes.
-            Examples:
-            - `sports` - Lists users in the "sports" group
-            - `sports/hockey` - Lists users in "sports/hockey"
-          example: "sports/hockey"
-        - $ref: '#/components/parameters/limitQueryParam'
-        - $ref: '#/components/parameters/offsetQueryParam'
-      responses:
-        "200":
-          description: List of users in the group
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserListResponse'
-              example:
-                totalResults: 2
-                startIndex: 1
-                count: 2
-                users:
-                  - id: "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
-                  - id: "9f1e47d3-0347-4464-9f02-e0bfae02e896"
-                links:
-                  - href: "groups/tree/sports/hockey/users?offset=2&limit=2"
-                    rel: "next"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              examples:
-                invalid-limit:
-                  summary: Invalid limit parameter
-                  value:
-                    code: "GRP-1001"
-                    message: "Invalid request format"
-                    description: "Invalid limit parameter value"
-                invalid-offset:
-                  summary: Invalid offset parameter
-                  value:
-                    code: "GRP-1001"
-                    message: "Invalid request format"
-                    description: "Invalid offset parameter value"
-        "404":
-          description: Group not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              examples:
-                path-not-found:
-                  summary: Handle path not found
-                  value:
-                    code: "GRP-1008"
-                    message: "Group not found"
-                    description: "The group with the specified handle path does not exist"
-                invalid-path:
-                  summary: Invalid path structure
-                  value:
-                    code: "GRP-1009"
-                    message: "Invalid handle path"
-                    description: "The handle path does not represent a valid group hierarchy"
-        "500":
-          description: Internal server error
-          content:
-            text/plain:
-              schema:
-                type: string
-              example: "Internal server error"
-
 components:
   parameters:
     limitQueryParam:
@@ -947,14 +567,11 @@ components:
 
     Group:
       type: object
-      required: [id, handle, name, parent]
+      required: [id, name, parent]
       properties:
         id:
           type: string
           format: uuid
-        handle:
-          type: string
-          description: "The unique handle for the group within its parent"
         name:
           type: string
         description:
@@ -965,11 +582,8 @@ components:
 
     CreateGroupRequest:
       type: object
-      required: [handle, name, parent]
+      required: [name, parent]
       properties:
-        handle:
-          type: string
-          description: "The unique handle for the group within its parent"
         name:
           type: string
         description:
@@ -981,29 +595,6 @@ components:
           items:
             type: string
             format: uuid
-
-    CreateGroupByHandleRequest:
-      type: object
-      required: [handle, name]
-      properties:
-        handle:
-          type: string
-          description: "The unique handle for the group within its parent"
-          example: "nhl"
-        name:
-          type: string
-          description: "The display name of the group"
-          example: "National Hockey League"
-        description:
-          type: string
-          description: "Optional description of the group"
-          example: "Professional hockey league"
-        users:
-          type: array
-          items:
-            type: string
-            format: uuid
-          description: "Optional list of user IDs to add to the group during creation"
 
     UpdateGroupRequest:
       allOf:
