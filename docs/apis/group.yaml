@@ -25,30 +25,38 @@ paths:
       tags:
         - groups
       summary: List root groups
+      parameters:
+        - $ref: '#/components/parameters/limitQueryParam'
+        - $ref: '#/components/parameters/offsetQueryParam'
       responses:
         "200":
           description: List of root groups
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/GroupBasic'
+                $ref: '#/components/schemas/GroupListResponse'
               example:
-                - id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                  handle: "sports"
-                  name: "Sports"
-                  description: "Sports group"
-                  parent:
-                    type: "organizationUnit"
-                    id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
-                - id: "257e528f-eb24-48b6-884d-20460e190957"
-                  handle: "managers"
-                  name: "Managers"
-                  description: "Manager group"
-                  parent:
-                    type: "organizationUnit"
-                    id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+                totalResults: 2
+                startIndex: 1
+                count: 2
+                groups:
+                  - id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    handle: "sports"
+                    name: "Sports"
+                    description: "Sports group"
+                    parent:
+                      type: "organizationUnit"
+                      id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+                  - id: "257e528f-eb24-48b6-884d-20460e190957"
+                    handle: "managers"
+                    name: "Managers"
+                    description: "Manager group"
+                    parent:
+                      type: "organizationUnit"
+                      id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+                links:
+                  - href: "groups?offset=2&limit=2"
+                    rel: "next"
         "400":
           description: Bad request
           content:
@@ -62,6 +70,18 @@ paths:
                     code: "GRP-1001"
                     message: "Invalid request format"
                     description: "The request body is malformed or contains invalid data"
+                invalid-limit:
+                  summary: Invalid limit parameter
+                  value:
+                    code: "GRP-1001"
+                    message: "Invalid request format"
+                    description: "Invalid limit parameter value"
+                invalid-offset:
+                  summary: Invalid offset parameter
+                  value:
+                    code: "GRP-1001"
+                    message: "Invalid request format"
+                    description: "Invalid offset parameter value"
         "500":
           description: Internal server error
           content:
@@ -402,6 +422,27 @@ paths:
               example: "Internal server error"
 
 components:
+  parameters:
+    limitQueryParam:
+      in: query
+      name: limit
+      required: false
+      description: |
+        Maximum number of records to return.
+      schema:
+        type: integer
+        minimum: 1
+        default: 30
+    offsetQueryParam:
+      in: query
+      name: offset
+      required: false
+      description: |
+        Number of records to skip for pagination.
+      schema:
+        type: integer
+        default: 0
+
   schemas:
     Parent:
       type: object
@@ -414,6 +455,7 @@ components:
         id:
           type: string
           format: uuid
+
     GroupBasic:
       type: object
       required: [id, handle, name, parent]
@@ -431,6 +473,7 @@ components:
           nullable: true
         parent:
           $ref: '#/components/schemas/Parent'
+
     Group:
       allOf:
         - $ref: '#/components/schemas/GroupBasic'
@@ -445,6 +488,7 @@ components:
           items:
             type: string
             format: uuid
+
     CreateGroupRequest:
       type: object
       required: [handle, name, parent]
@@ -473,6 +517,40 @@ components:
           items:
             type: string
             format: uuid
+
+    GroupListResponse:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          description: "Number of results that match the listing operation."
+          example: 8
+        startIndex:
+          type: integer
+          description: "Index of the first element of the page, which will be equal to offset + 1."
+          example: 1
+        count:
+          type: integer
+          description: "Number of elements in the returned page."
+          example: 5
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupBasic'
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+
+    Link:
+      type: object
+      properties:
+        href:
+          type: string
+          example: "groups?offset=20&limit=10"
+        rel:
+          type: string
+          example: "next"
 
     Error:
       type: object
