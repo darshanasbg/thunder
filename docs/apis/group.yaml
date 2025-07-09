@@ -18,6 +18,8 @@ servers:
 tags:
   - name: groups
     description: Operations related to group management
+  - name: groups-by-path
+    description: Operations related to group management using hierarchical handle paths
 
 paths:
   /groups:
