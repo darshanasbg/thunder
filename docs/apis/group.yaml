@@ -421,6 +421,154 @@ paths:
                 type: string
               example: "Internal server error"
 
+  /groups/{id}/children:
+    get:
+      tags:
+        - groups
+      summary: List child groups
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/limitQueryParam'
+        - $ref: '#/components/parameters/offsetQueryParam'
+      responses:
+        "200":
+          description: List of child groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupListResponse'
+              example:
+                totalResults: 2
+                startIndex: 1
+                count: 2
+                groups:
+                  - id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
+                    handle: "hockey"
+                    name: "Hockey"
+                    description: "Hockey group"
+                    parent:
+                      type: "group"
+                      id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  - id: "8c2f8e9e-8f2a-4f5b-9c3d-4e5f6a7b8c9d"
+                    handle: "football"
+                    name: "Football"
+                    description: "Football group"
+                    parent:
+                      type: "group"
+                      id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                links:
+                  - href: "groups/3fa85f64-5717-4562-b3fc-2c963f66afa6/children?offset=2&limit=2"
+                    rel: "next"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-limit:
+                  summary: Invalid limit parameter
+                  value:
+                    code: "GRP-1001"
+                    message: "Invalid request format"
+                    description: "Invalid limit parameter value"
+                invalid-offset:
+                  summary: Invalid offset parameter
+                  value:
+                    code: "GRP-1001"
+                    message: "Invalid request format"
+                    description: "Invalid offset parameter value"
+        "404":
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "GRP-1003"
+                message: "Group not found"
+                description: "The group with the specified id does not exist"
+        "500":
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "Internal server error"
+
+  /groups/{id}/users:
+    get:
+      tags:
+        - groups
+      summary: List users in group
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/limitQueryParam'
+        - $ref: '#/components/parameters/offsetQueryParam'
+      responses:
+        "200":
+          description: List of users in the group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+              example:
+                totalResults: 2
+                startIndex: 1
+                count: 2
+                users:
+                  - id: "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
+                  - id: "9f1e47d3-0347-4464-9f02-e0bfae02e896"
+                links:
+                  - href: "groups/3fa85f64-5717-4562-b3fc-2c963f66afa6/users?offset=2&limit=2"
+                    rel: "next"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-limit:
+                  summary: Invalid limit parameter
+                  value:
+                    code: "GRP-1001"
+                    message: "Invalid request format"
+                    description: "Invalid limit parameter value"
+                invalid-offset:
+                  summary: Invalid offset parameter
+                  value:
+                    code: "GRP-1001"
+                    message: "Invalid request format"
+                    description: "Invalid offset parameter value"
+        "404":
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "GRP-1003"
+                message: "Group not found"
+                description: "The group with the specified id does not exist"
+        "500":
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "Internal server error"
+
 components:
   parameters:
     limitQueryParam:
@@ -537,6 +685,38 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GroupBasic'
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+
+    User:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+          format: uuid
+
+    UserListResponse:
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          description: "Number of results that match the listing operation."
+          example: 25
+        startIndex:
+          type: integer
+          description: "Index of the first element of the page, which will be equal to offset + 1."
+          example: 1
+        count:
+          type: integer
+          description: "Number of elements in the returned page."
+          example: 10
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
         links:
           type: array
           items:
