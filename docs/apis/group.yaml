@@ -395,7 +395,7 @@ paths:
                 type: string
               example: "Internal server error"
 
-  /groups/{id}/children:
+  /groups/{id}/groups:
     get:
       tags:
         - groups
@@ -436,7 +436,7 @@ paths:
                       type: "group"
                       id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                 links:
-                  - href: "groups/3fa85f64-5717-4562-b3fc-2c963f66afa6/children?offset=2&limit=2"
+                  - href: "groups/3fa85f64-5717-4562-b3fc-2c963f66afa6/groups?offset=2&limit=2"
                     rel: "next"
         "400":
           description: Bad request
@@ -734,7 +734,7 @@ paths:
                 type: string
               example: "Internal server error"
 
-  /groups/tree/{handlePath}/children:
+  /groups/tree/{handlePath}/groups:
     get:
       tags:
         - groups-by-path
@@ -782,7 +782,7 @@ paths:
                       type: "group"
                       id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
                 links:
-                  - href: "groups/tree/sports/hockey/children?offset=2&limit=2"
+                  - href: "groups/tree/sports/hockey/groups?offset=2&limit=2"
                     rel: "next"
         "400":
           description: Bad request

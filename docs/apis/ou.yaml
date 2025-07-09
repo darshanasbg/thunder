@@ -313,7 +313,7 @@ paths:
         "500":
           description: Internal server error
 
-  /organization-units/{id}/children:
+  /organization-units/{id}/ous:
     get:
       tags:
         - organization-units
@@ -348,7 +348,7 @@ paths:
                     handle: "backend"
                     description: "Handles server-side development"
                 links:
-                  - href: "organization-units/afc77cfd-620b-4cf0-a31c-7377b0ea8902/children?offset=2&limit=2"
+                  - href: "organization-units/afc77cfd-620b-4cf0-a31c-7377b0ea8902/ous?offset=2&limit=2"
                     rel: "next"
         "400":
           description: Bad request
@@ -576,7 +576,7 @@ paths:
         "500":
           description: Internal server error
 
-  /organization-units/path/{handlePath}/children:
+  /organization-units/path/{handlePath}/ous:
     post:
       tags:
         - organization-units-by-path
@@ -716,7 +716,7 @@ paths:
                     handle: "backend"
                     description: "Handles server-side development"
                 links:
-                  - href: "organization-units/tree/engineering/children?offset=2&limit=2"
+                  - href: "organization-units/tree/engineering/ous?offset=2&limit=2"
                     rel: "next"
         "400":
           description: Bad request
