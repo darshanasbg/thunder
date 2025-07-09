@@ -53,6 +53,25 @@ paths:
                 links:
                   - href: "organization-units?offset=2&limit=2"
                     rel: "next"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-limit:
+                  summary: Invalid limit parameter
+                  value:
+                    code: "OU-1011"
+                    message: "Invalid pagination parameter"
+                    description: "The limit parameter must be a positive integer"
+                invalid-offset:
+                  summary: Invalid offset parameter
+                  value:
+                    code: "OU-1012"
+                    message: "Invalid pagination parameter"
+                    description: "The offset parameter must be a non-negative integer"
         "500":
           description: Internal server error
 
@@ -341,6 +360,25 @@ paths:
                 links:
                   - href: "organization-units/afc77cfd-620b-4cf0-a31c-7377b0ea8902/children?offset=2&limit=2"
                     rel: "next"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-limit:
+                  summary: Invalid limit parameter
+                  value:
+                    code: "OU-1011"
+                    message: "Invalid pagination parameter"
+                    description: "The limit parameter must be a positive integer"
+                invalid-offset:
+                  summary: Invalid offset parameter
+                  value:
+                    code: "OU-1012"
+                    message: "Invalid pagination parameter"
+                    description: "The offset parameter must be a non-negative integer"
         "404":
           description: Organization unit not found
           content:
@@ -385,6 +423,25 @@ paths:
                 links:
                   - href: "organization-units/afc77cfd-620b-4cf0-a31c-7377b0ea8902/users?offset=2&limit=2"
                     rel: "next"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-limit:
+                  summary: Invalid limit parameter
+                  value:
+                    code: "OU-1011"
+                    message: "Invalid pagination parameter"
+                    description: "The limit parameter must be a positive integer"
+                invalid-offset:
+                  summary: Invalid offset parameter
+                  value:
+                    code: "OU-1012"
+                    message: "Invalid pagination parameter"
+                    description: "The offset parameter must be a non-negative integer"
         "404":
           description: Organization unit not found
           content:
@@ -431,6 +488,25 @@ paths:
                 links:
                   - href: "organization-units/afc77cfd-620b-4cf0-a31c-7377b0ea8902/groups?offset=2&limit=2"
                     rel: "next"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-limit:
+                  summary: Invalid limit parameter
+                  value:
+                    code: "OU-1011"
+                    message: "Invalid pagination parameter"
+                    description: "The limit parameter must be a positive integer"
+                invalid-offset:
+                  summary: Invalid offset parameter
+                  value:
+                    code: "OU-1012"
+                    message: "Invalid pagination parameter"
+                    description: "The offset parameter must be a non-negative integer"
         "404":
           description: Organization unit not found
           content:
@@ -652,6 +728,25 @@ paths:
                 links:
                   - href: "organization-units/by-handle/engineering/children?offset=2&limit=2"
                     rel: "next"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-limit:
+                  summary: Invalid limit parameter
+                  value:
+                    code: "OU-1011"
+                    message: "Invalid pagination parameter"
+                    description: "The limit parameter must be a positive integer"
+                invalid-offset:
+                  summary: Invalid offset parameter
+                  value:
+                    code: "OU-1012"
+                    message: "Invalid pagination parameter"
+                    description: "The offset parameter must be a non-negative integer"
         "404":
           description: Organization unit not found
           content:
@@ -712,6 +807,25 @@ paths:
                 links:
                   - href: "organization-units/by-handle/engineering/frontend/users?offset=2&limit=2"
                     rel: "next"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-limit:
+                  summary: Invalid limit parameter
+                  value:
+                    code: "OU-1011"
+                    message: "Invalid pagination parameter"
+                    description: "The limit parameter must be a positive integer"
+                invalid-offset:
+                  summary: Invalid offset parameter
+                  value:
+                    code: "OU-1012"
+                    message: "Invalid pagination parameter"
+                    description: "The offset parameter must be a non-negative integer"
         "404":
           description: Organization unit not found
           content:
@@ -774,6 +888,25 @@ paths:
                 links:
                   - href: "organization-units/by-handle/engineering/frontend/groups?offset=2&limit=2"
                     rel: "next"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-limit:
+                  summary: Invalid limit parameter
+                  value:
+                    code: "OU-1011"
+                    message: "Invalid pagination parameter"
+                    description: "The limit parameter must be a positive integer"
+                invalid-offset:
+                  summary: Invalid offset parameter
+                  value:
+                    code: "OU-1012"
+                    message: "Invalid pagination parameter"
+                    description: "The offset parameter must be a non-negative integer"
         "404":
           description: Organization unit not found
           content:
