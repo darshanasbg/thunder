@@ -385,16 +385,6 @@ paths:
                     code: "GRP-1006"
                     message: "Cannot delete group"
                     description: "Cannot delete group with child groups"
-        "404":
-          description: Group not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-              example:
-                code: "GRP-1003"
-                message: "Group not found"
-                description: "The group with the specified id does not exist"
         "500":
           description: Internal server error
           content:
