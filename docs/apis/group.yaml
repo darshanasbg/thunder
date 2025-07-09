@@ -24,13 +24,13 @@ paths:
     get:
       tags:
         - groups
-      summary: List root groups
+      summary: List groups
       parameters:
         - $ref: '#/components/parameters/limitQueryParam'
         - $ref: '#/components/parameters/offsetQueryParam'
       responses:
         "200":
-          description: List of root groups
+          description: List of groups
           content:
             application/json:
               schema:
