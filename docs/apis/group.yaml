@@ -94,27 +94,17 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateGroupRequest'
-            examples:
-              root-group:
-                summary: Root group
-                value:
-                  name: "Sports"
-                  description: "Sports group"
-                  organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
-                  members:
-                    - type: "user"
-                      id: "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
-                    - type: "user"
-                      id: "9f1e47d3-0347-4464-9f02-e0bfae02e896"
-              nested-group:
-                summary: Nested group
-                value:
-                  name: "Hockey"
-                  description: "Hockey group"
-                  organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
-                  members:
-                    - type: "user"
-                      id: "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
+            example:
+              name: "Sports"
+              description: "Sports group"
+              organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+              members:
+                - type: "user"
+                  id: "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
+                - type: "user"
+                  id: "9f1e47d3-0347-4464-9f02-e0bfae02e896"
+                - type: "group"
+                  id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
       responses:
         "201":
           description: Group created
@@ -122,21 +112,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Group'
-              examples:
-                root-group:
-                  summary: Root group
-                  value:
-                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                    name: "Sports"
-                    description: "Sports group"
-                    organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
-                nested-group:
-                  summary: Nested group
-                  value:
-                    id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
-                    name: "Hockey"
-                    description: "Hockey group"
-                    organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+              example:
+                id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                name: "Sports"
+                description: "Sports group"
+                organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
         "400":
           description: Bad request
           content:
@@ -258,8 +238,8 @@ paths:
                   id: "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
                 - type: "user"
                   id: "9f1e47d3-0347-4464-9f02-e0bfae02e896"
-                - type: "user"
-                  id: "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
+                - type: "group"
+                  id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
       responses:
         "200":
           description: Group updated
