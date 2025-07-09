@@ -24,10 +24,10 @@ paths:
     get:
       tags:
         - groups
-      summary: List groups
+      summary: List root groups
       responses:
         "200":
-          description: List of groups
+          description: List of root groups
           content:
             application/json:
               schema:
