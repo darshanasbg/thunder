@@ -20,6 +20,8 @@ tags:
     description: Operations related to organization unit management
   - name: organization-units-by-path
     description: Operations related to organization units using hierarchical handle paths
+  - name: users
+    description: Operations related to user management
   - name: groups
     description: Operations related to group management
   - name: groups-by-path
@@ -1092,6 +1094,211 @@ paths:
                     description: "The handle path does not represent a valid organizational hierarchy"
         "500":
           description: Internal server error
+
+  /users:
+    get:
+      tags:
+        - users
+      summary: List users
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User2'
+              example:
+                - id: "9a475e1e-b0cb-4b29-8df5-2e5b24fb0ed3"
+                  organizationUnit: "456e8400-e29b-41d4-a716-446655440001"
+                  type: "customer"
+                  attributes:
+                    age: 24
+                    email: "jane.doe@example.com"
+                    mobile: "+1-650-555-1234"
+                    address:
+                      city: "Mountain View"
+                      zip: "94040"
+                    contactPreferences:
+                      - email
+                      - sms
+                - id: "039bda67-a80d-4b7b-ac0f-36db85332089"
+                  organizationUnit: "456e8400-e29b-41d4-a716-446655440001"
+                  type: "customer"
+                  attributes:
+                    age: 31
+                    email: "john.smith@example.com"
+                    mobile: "+1-650-903-0002"
+                    address:
+                      city: "Palo Alto"
+                      zip: "94301"
+                    contactPreferences:
+                      - sms
+                - id: "e1b6ba6c-deb2-4d24-87b0-bbf79fa4487c"
+                  organizationUnit: "26eec421-f1bb-4deb-a5d3-9ab6554c2ae6"
+                  type: "employee"
+                  attributes:
+                    username: "alice.wu"
+                    firstname: "Alice"
+                    lastname: "Wu"
+                    department: "Engineering"
+                    email: "alice.wu@company.inc"
+        "500":
+          description: Internal server error
+    post:
+      tags:
+        - users
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User2'
+            example:
+              organizationUnit: "456e8400-e29b-41d4-a716-446655440001"
+              type: "customer"
+              attributes:
+                age: 24
+                email: "jane.doe@example.com"
+                mobile: "+1-650-555-1234"
+                address:
+                  city: "Mountain View"
+                  zip: "94040"
+                contactPreferences:
+                  - email
+                  - sms
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User2'
+              example:
+                id: "9a475e1e-b0cb-4b29-8df5-2e5b24fb0ed3"
+                organizationUnit: "456e8400-e29b-41d4-a716-446655440001"
+                type: "customer"
+                attributes:
+                  age: 24
+                  email: "jane.doe@example.com"
+                  mobile: "+1-650-555-1234"
+                  address:
+                    city: "Mountain View"
+                    zip: "94040"
+                  contactPreferences:
+                    - email
+                    - sms
+        "400":
+          description: Bad request
+        "409":
+          description: Conflict
+        "500":
+          description: Internal server error
+
+  /users/{id}:
+    get:
+      tags:
+        - users
+      summary: Get a user by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "9a475e1e-b0cb-4b29-8df5-2e5b24fb0ed3"
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User2'
+              example:
+                id: "9a475e1e-b0cb-4b29-8df5-2e5b24fb0ed3"
+                organizationUnit: "456e8400-e29b-41d4-a716-446655440001"
+                type: "customer"
+                attributes:
+                  age: 24
+                  email: "jane.doe@example.com"
+                  mobile: "+1-650-555-1234"
+                  address:
+                    city: "Mountain View"
+                    zip: "94040"
+                  contactPreferences:
+                    - email
+                    - sms
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+    put:
+      tags:
+        - users
+      summary: Update a user by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "9a475e1e-b0cb-4b29-8df5-2e5b24fb0ed3"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User2'
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User2'
+              example:
+                id: "9a475e1e-b0cb-4b29-8df5-2e5b24fb0ed3"
+                organizationUnit: "456e8400-e29b-41d4-a716-446655440001"
+                type: "customer"
+                attributes:
+                  age: 25
+                  email: "jane.doe@example.com"
+                  mobile: "+1-650-555-5678"
+                  address:
+                    city: "Mountain View"
+                    zip: "94040"
+                  contactPreferences:
+                    - email
+        "400":
+          description: Bad request
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+    delete:
+      tags:
+        - users
+      summary: Delete a user by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: "9a475e1e-b0cb-4b29-8df5-2e5b24fb0ed3"
+      responses:
+        "204":
+          description: User deleted
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+
   /groups:
     get:
       tags:
@@ -2017,3 +2224,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Link'
+
+    User2:
+      type: object
+      properties:
+        id:
+          type: string
+        organizationUnit:
+          type: string
+        type:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: true
