@@ -43,15 +43,11 @@ paths:
                   - id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                     name: "Sports"
                     description: "Sports group"
-                    parent:
-                      type: "organizationUnit"
-                      id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+                    organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                   - id: "257e528f-eb24-48b6-884d-20460e190957"
                     name: "Managers"
                     description: "Manager group"
-                    parent:
-                      type: "organizationUnit"
-                      id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+                    organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                 links:
                   - href: "groups?offset=2&limit=2"
                     rel: "next"
@@ -104,9 +100,7 @@ paths:
                 value:
                   name: "Sports"
                   description: "Sports group"
-                  parent:
-                    type: "organizationUnit"
-                    id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+                  organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                   members:
                     - type: "user"
                       id: "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
@@ -117,9 +111,7 @@ paths:
                 value:
                   name: "Hockey"
                   description: "Hockey group"
-                  parent:
-                    type: "group"
-                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                   members:
                     - type: "user"
                       id: "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
@@ -137,18 +129,14 @@ paths:
                     id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                     name: "Sports"
                     description: "Sports group"
-                    parent:
-                      type: "organizationUnit"
-                      id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+                    organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
                 nested-group:
                   summary: Nested group
                   value:
                     id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
                     name: "Hockey"
                     description: "Hockey group"
-                    parent:
-                      type: "group"
-                      id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
         "400":
           description: Bad request
           content:
@@ -168,12 +156,12 @@ paths:
                     code: "GRP-1007"
                     message: "Invalid member ID"
                     description: "One or more member IDs in the request do not exist"
-                parent-not-found:
-                  summary: Parent not found
+                ou-not-found:
+                  summary: Organization unit not found
                   value:
                     code: "GRP-1005"
-                    message: "Parent not found"
-                    description: "Parent group or organization unit not found"
+                    message: "Organization unit not found"
+                    description: "Organization unit not found"
         "409":
           description: Conflict
           content:
@@ -183,7 +171,7 @@ paths:
               example:
                 code: "GRP-1004"
                 message: "Group name conflict"
-                description: "A group with the same name exists under the same parent"
+                description: "A group with the same name exists under the same organization unit"
         "500":
           description: Internal server error
           content:
@@ -215,9 +203,7 @@ paths:
                 id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                 name: "Sports"
                 description: "Sports group"
-                parent:
-                  type: "organizationUnit"
-                  id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+                organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
         "400":
           description: Bad request
           content:
@@ -266,9 +252,7 @@ paths:
             example:
               name: "Activities"
               description: "Activities group"
-              parent:
-                type: "organizationUnit"
-                id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+              organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
               members:
                 - type: "user"
                   id: "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
@@ -287,9 +271,7 @@ paths:
                 id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                 name: "Activities"
                 description: "Activities group"
-                parent:
-                  type: "organizationUnit"
-                  id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+                organizationUnitId: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
         "400":
           description: Bad request
           content:
@@ -315,12 +297,12 @@ paths:
                     code: "GRP-1007"
                     message: "Invalid member ID"
                     description: "One or more member IDs in the request do not exist"
-                parent-not-found:
-                  summary: Parent not found
+                ou-not-found:
+                  summary: Organization unit not found
                   value:
                     code: "GRP-1005"
-                    message: "Parent not found"
-                    description: "Parent group or organization unit not found"
+                    message: "Organization unit not found"
+                    description: "Organization unit not found"
         "404":
           description: Group not found
           content:
@@ -340,7 +322,7 @@ paths:
               example:
                 code: "GRP-1004"
                 message: "Group name conflict"
-                description: "A group with the same name exists under the same parent"
+                description: "A group with the same name exists under the same organization unit"
         "500":
           description: Internal server error
           content:
@@ -487,18 +469,6 @@ components:
         default: 0
 
   schemas:
-    Parent:
-      type: object
-      properties:
-        type:
-          type: string
-          enum:
-            - group
-            - organizationUnit
-        id:
-          type: string
-          format: uuid
-
     Member:
       type: object
       required: [id, type]
@@ -514,7 +484,7 @@ components:
 
     Group:
       type: object
-      required: [id, name, parent]
+      required: [id, name, organizationUnitId]
       properties:
         id:
           type: string
@@ -524,8 +494,9 @@ components:
         description:
           type: string
           nullable: true
-        parent:
-          $ref: '#/components/schemas/Parent'
+        organizationUnitId:
+          type: string
+          format: uuid
         members:
           type: array
           items:
@@ -533,14 +504,15 @@ components:
 
     CreateGroupRequest:
       type: object
-      required: [name, parent]
+      required: [name, organizationUnitId]
       properties:
         name:
           type: string
         description:
           type: string
-        parent:
-          $ref: '#/components/schemas/Parent'
+        organizationUnitId:
+          type: string
+          format: uuid
         members:
           type: array
           items:
