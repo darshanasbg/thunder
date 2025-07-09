@@ -36,7 +36,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GroupListResponse'
               example:
-                totalResults: 2
+                totalResults: 5
                 startIndex: 1
                 count: 2
                 groups:
@@ -374,16 +374,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/MemberListResponse'
               example:
-                totalResults: 4
+                totalResults: 5
                 startIndex: 1
-                count: 4
+                count: 2
                 members:
                   - type: "user"
                     id: "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
-                  - type: "user"
-                    id: "9f1e47d3-0347-4464-9f02-e0bfae02e896"
-                  - type: "group"
-                    id: "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
                   - type: "group"
                     id: "8c2f8e9e-8f2a-4f5b-9c3d-4e5f6a7b8c9d"
                 links:
