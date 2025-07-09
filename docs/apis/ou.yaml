@@ -576,6 +576,176 @@ paths:
         "500":
           description: Internal server error
 
+    put:
+      tags:
+        - organization-units-by-path
+      summary: Update an organization unit by hierarchical handle path
+      parameters:
+        - in: path
+          name: handlePath
+          required: true
+          schema:
+            type: string
+          style: simple
+          explode: false
+          description: |
+            Hierarchical path of organization unit handles separated by forward slashes.
+            Examples:
+            - `engineering` - Updates the root OU with handle "engineering"
+            - `engineering/frontend` - Updates the "frontend" OU under "engineering"
+            - `engineering/frontend/ui` - Updates the "ui" OU under "engineering/frontend"
+          example: "engineering/frontend"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrganizationUnitByHandleRequest'
+            examples:
+              single-level:
+                summary: Update single level OU
+                value:
+                  name: "Engineering Division"
+                  handle: "engineering"
+                  description: "Main engineering division"
+              multi-level:
+                summary: Update nested OU
+                value:
+                  name: "Frontend Development"
+                  handle: "frontend"
+                  description: "Frontend development team with expanded scope"
+      responses:
+        "200":
+          description: Organization unit updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationUnit'
+              examples:
+                single-level:
+                  summary: Updated single level OU
+                  value:
+                    id: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
+                    name: "Engineering Division"
+                    handle: "engineering"
+                    description: "Main engineering division"
+                    parent: null
+                multi-level:
+                  summary: Updated nested OU
+                  value:
+                    id: "6b59f277-fd79-40b1-afca-dce75d3709f7"
+                    name: "Frontend Development"
+                    handle: "frontend"
+                    description: "Frontend development team with expanded scope"
+                    parent: "afc77cfd-620b-4cf0-a31c-7377b0ea8902"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-request:
+                  summary: Invalid request format
+                  value:
+                    code: "OU-1001"
+                    message: "Invalid request format"
+                    description: "The request body is malformed, contains invalid data, or required fields are missing/empty"
+                handle-conflict:
+                  summary: Handle already exists under parent
+                  value:
+                    code: "OU-1010"
+                    message: "Handle conflict"
+                    description: "An organization unit with the same handle already exists under the same parent"
+        "404":
+          description: Organization unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                path-not-found:
+                  summary: Handle path not found
+                  value:
+                    code: "OU-1003"
+                    message: "Organization unit not found"
+                    description: "The organization unit with the specified handle path does not exist"
+                invalid-path:
+                  summary: Invalid path structure
+                  value:
+                    code: "OU-1008"
+                    message: "Invalid handle path"
+                    description: "The handle path does not represent a valid organizational hierarchy"
+        "409":
+          description: Organization unit name conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "OU-1004"
+                message: "Organization unit name conflict"
+                description: "An organization unit with the same name exists under the same parent"
+        "500":
+          description: Internal server error
+
+    delete:
+      tags:
+        - organization-units-by-path
+      summary: Delete an organization unit by hierarchical handle path
+      parameters:
+        - in: path
+          name: handlePath
+          required: true
+          schema:
+            type: string
+          style: simple
+          explode: false
+          description: |
+            Hierarchical path of organization unit handles separated by forward slashes.
+            Examples:
+            - `engineering` - Deletes the root OU with handle "engineering"
+            - `engineering/frontend` - Deletes the "frontend" OU under "engineering"
+            - `engineering/frontend/ui` - Deletes the "ui" OU under "engineering/frontend"
+          example: "engineering/frontend"
+      responses:
+        "204":
+          description: Organization unit deleted
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                has-children:
+                  summary: Organization unit has children
+                  value:
+                    code: "OU-1006"
+                    message: "Organization unit has children"
+                    description: "Cannot delete organization unit with children or users or groups"
+        "404":
+          description: Organization unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                path-not-found:
+                  summary: Handle path not found
+                  value:
+                    code: "OU-1003"
+                    message: "Organization unit not found"
+                    description: "The organization unit with the specified handle path does not exist"
+                invalid-path:
+                  summary: Invalid path structure
+                  value:
+                    code: "OU-1008"
+                    message: "Invalid handle path"
+                    description: "The handle path does not represent a valid organizational hierarchy"
+        "500":
+          description: Internal server error
+
   /organization-units/tree/{handlePath}/ous:
     post:
       tags:
@@ -994,6 +1164,23 @@ components:
           example: "next"
 
     CreateOrganizationUnitByHandleRequest:
+      type: object
+      required: [name, handle]
+      properties:
+        name:
+          type: string
+          description: "The display name of the organization unit"
+          example: "Frontend Development Team"
+        handle:
+          type: string
+          description: "The unique handle for the organization unit within its parent"
+          example: "frontend-dev"
+        description:
+          type: string
+          description: "Optional description of the organization unit"
+          example: "Team responsible for frontend development and UI/UX"
+
+    UpdateOrganizationUnitByHandleRequest:
       type: object
       required: [name, handle]
       properties:
