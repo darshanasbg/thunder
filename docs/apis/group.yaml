@@ -142,9 +142,6 @@ paths:
                     parent:
                       type: "organizationUnit"
                       id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
-                    users:
-                      - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
-                      - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
                 nested-group:
                   summary: Nested group
                   value:
@@ -155,8 +152,6 @@ paths:
                     parent:
                       type: "group"
                       id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                    users:
-                      - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
         "400":
           description: Bad request
           content:
@@ -227,11 +222,6 @@ paths:
                 parent:
                   type: "organizationUnit"
                   id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
-                users:
-                  - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
-                  - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
-                groups:
-                  - "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
         "400":
           description: Bad request
           content:
@@ -288,8 +278,6 @@ paths:
                 - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
                 - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
                 - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
-              groups:
-                - "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
       responses:
         "200":
           description: Group updated
@@ -305,12 +293,6 @@ paths:
                 parent:
                   type: "organizationUnit"
                   id: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
-                users:
-                  - "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
-                  - "9f1e47d3-0347-4464-9f02-e0bfae02e896"
-                  - "2cbb94c7-81f1-44e3-8e9e-75e0c3dd36da"
-                groups:
-                  - "6b1e7b8d-7e19-41eb-8fa2-c0ee5bb67a94"
         "400":
           description: Bad request
           content:
@@ -604,7 +586,7 @@ components:
           type: string
           format: uuid
 
-    GroupBasic:
+    Group:
       type: object
       required: [id, handle, name, parent]
       properties:
@@ -621,21 +603,6 @@ components:
           nullable: true
         parent:
           $ref: '#/components/schemas/Parent'
-
-    Group:
-      allOf:
-        - $ref: '#/components/schemas/GroupBasic'
-      properties:
-        users:
-          type: array
-          items:
-            type: string
-            format: uuid
-        groups:
-          type: array
-          items:
-            type: string
-            format: uuid
 
     CreateGroupRequest:
       type: object
@@ -659,12 +626,6 @@ components:
     UpdateGroupRequest:
       allOf:
         - $ref: '#/components/schemas/CreateGroupRequest'
-      properties:
-        groups:
-          type: array
-          items:
-            type: string
-            format: uuid
 
     GroupListResponse:
       type: object
@@ -684,7 +645,7 @@ components:
         groups:
           type: array
           items:
-            $ref: '#/components/schemas/GroupBasic'
+            $ref: '#/components/schemas/Group'
         links:
           type: array
           items:
