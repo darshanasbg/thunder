@@ -22,6 +22,8 @@ tags:
     description: Operations related to organization units using hierarchical handle paths
   - name: users
     description: Operations related to user management
+  - name: users-by-path
+    description: Operations related to user management using hierarchical handle paths
   - name: groups
     description: Operations related to group management
   - name: groups-by-path
@@ -1299,6 +1301,212 @@ paths:
         "500":
           description: Internal server error
 
+  /users/tree/{handlePath}:
+    get:
+      tags:
+        - users-by-path
+      summary: List users in organization unit specified by handle path
+      parameters:
+        - in: path
+          name: handlePath
+          required: true
+          schema:
+            type: string
+          style: simple
+          explode: false
+          description: |
+            Hierarchical path of organization unit handles separated by forward slashes.
+            Examples:
+            - `engineering` - Lists users in the "engineering" OU
+            - `engineering/frontend` - Lists users in "engineering/frontend"
+          example: "engineering/frontend"
+        - $ref: '#/components/parameters/limitQueryParam'
+        - $ref: '#/components/parameters/offsetQueryParam'
+      responses:
+        "200":
+          description: List of users in the organization unit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+              example:
+                totalResults: 5
+                startIndex: 1
+                count: 2
+                users:
+                  - id: "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
+                  - id: "9f1e47d3-0347-4464-9f02-e0bfae02e896"
+                links:
+                  - href: "users/tree/engineering/frontend?offset=10&limit=10"
+                    rel: "next"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-limit:
+                  summary: Invalid limit parameter
+                  value:
+                    code: "OU-1011"
+                    message: "Invalid pagination parameter"
+                    description: "The limit parameter must be a positive integer"
+                invalid-offset:
+                  summary: Invalid offset parameter
+                  value:
+                    code: "OU-1012"
+                    message: "Invalid pagination parameter"
+                    description: "The offset parameter must be a non-negative integer"
+        "404":
+          description: Organization unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                path-not-found:
+                  summary: Handle path not found
+                  value:
+                    code: "OU-1003"
+                    message: "Organization unit not found"
+                    description: "The organization unit with the specified handle path does not exist"
+                invalid-path:
+                  summary: Invalid path structure
+                  value:
+                    code: "OU-1008"
+                    message: "Invalid handle path"
+                    description: "The handle path does not represent a valid organizational hierarchy"
+        "500":
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "Internal server error"
+
+    post:
+      tags:
+        - users-by-path
+      summary: Create a new user under the organization unit specified by the handle path
+      parameters:
+        - in: path
+          name: handlePath
+          required: true
+          schema:
+            type: string
+          style: simple
+          explode: false
+          description: |
+            Hierarchical path of organization unit handles separated by forward slashes.
+            The new user will be created under the organization unit specified by this path.
+            Examples:
+            - `engineering` - Creates a new user under the "engineering" OU
+            - `engineering/frontend` - Creates a new user under "engineering/frontend"
+          example: "engineering/frontend"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserByPathRequest'
+            example:
+              organizationUnit: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+              type: "employee"
+              attributes:
+                username: "john.doe"
+                firstname: "John"
+                lastname: "Doe"
+                email: "john.doe@company.com"
+                department: "Engineering"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User2'
+              example:
+                id: "7a4b1f8e-5c69-4b60-9232-2b0aaf65ef3c"
+                organizationUnit: "a839f4bd-39dc-4eaa-b5cc-210d8ecaee87"
+                type: "employee"
+                attributes:
+                  username: "john.doe"
+                  firstname: "John"
+                  lastname: "Doe"
+                  email: "john.doe@company.com"
+                  department: "Engineering"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-request-format:
+                  summary: Invalid request format
+                  value:
+                    code: "OU-1001"
+                    message: "Invalid request format"
+                    description: "The request body is malformed, contains invalid data, or required fields are missing/empty"
+                username-conflict:
+                  summary: Username already exists
+                  value:
+                    code: "OU-1014"
+                    message: "Username conflict"
+                    description: "A user with the same username already exists"
+                email-conflict:
+                  summary: Email already exists
+                  value:
+                    code: "OU-1015"
+                    message: "Email conflict"
+                    description: "A user with the same email already exists"
+        "404":
+          description: Organization unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                path-not-found:
+                  summary: Handle path not found
+                  value:
+                    code: "OU-1003"
+                    message: "Organization unit not found"
+                    description: "The organization unit with the specified handle path does not exist"
+                invalid-path:
+                  summary: Invalid path structure
+                  value:
+                    code: "OU-1008"
+                    message: "Invalid handle path"
+                    description: "The handle path does not represent a valid organizational hierarchy"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                username-conflict:
+                  summary: Username already exists
+                  value:
+                    code: "OU-1014"
+                    message: "Username conflict"
+                    description: "A user with the same username already exists"
+                email-conflict:
+                  summary: Email already exists
+                  value:
+                    code: "OU-1015"
+                    message: "Email conflict"
+                    description: "A user with the same email already exists"
+        "500":
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "Internal server error"
+
   /groups:
     get:
       tags:
@@ -2237,3 +2445,22 @@ components:
         attributes:
           type: object
           additionalProperties: true
+
+    CreateUserByPathRequest:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          description: "The type of user"
+          example: "employee"
+        attributes:
+          type: object
+          description: "User attributes"
+          additionalProperties: true
+          example:
+            username: "john.doe"
+            firstname: "John"
+            lastname: "Doe"
+            email: "john.doe@company.com"
+            department: "Engineering"
