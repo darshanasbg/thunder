@@ -31,8 +31,37 @@ import (
 
 const loggerComponentName = "OrganizationUnitStore"
 
-// GetOrganizationUnitList retrieves all organization units.
-func GetOrganizationUnitList() ([]model.OrganizationUnitBasic, error) {
+// GetOrganizationUnitListCount retrieves the total count of organization units.
+func GetOrganizationUnitListCount() (int, error) {
+	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, loggerComponentName))
+
+	dbClient, err := provider.NewDBProvider().GetDBClient("identity")
+	if err != nil {
+		return 0, fmt.Errorf("failed to get database client: %w", err)
+	}
+	defer func() {
+		if closeErr := dbClient.Close(); closeErr != nil {
+			logger.Error("Failed to close database client", log.Error(closeErr))
+		}
+	}()
+
+	results, err := dbClient.Query(QueryGetOrganizationUnitListCount)
+	if err != nil {
+		return 0, fmt.Errorf("failed to execute count query: %w", err)
+	}
+
+	var total int
+	if len(results) > 0 {
+		if val, ok := results[0]["total"].(int64); ok {
+			total = int(val)
+		}
+	}
+
+	return total, nil
+}
+
+// GetOrganizationUnitList retrieves organization units with pagination.
+func GetOrganizationUnitList(limit, offset int) ([]model.OrganizationUnitBasic, error) {
 	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, loggerComponentName))
 
 	dbClient, err := provider.NewDBProvider().GetDBClient("identity")
@@ -45,7 +74,7 @@ func GetOrganizationUnitList() ([]model.OrganizationUnitBasic, error) {
 		}
 	}()
 
-	results, err := dbClient.Query(QueryGetOrganizationUnitList)
+	results, err := dbClient.Query(QueryGetOrganizationUnitList, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", err)
 	}

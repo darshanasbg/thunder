@@ -21,6 +21,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/asgardeo/thunder/internal/ou/constants"
@@ -35,7 +36,7 @@ const loggerComponentName = "OrganizationUnitService"
 
 // OrganizationUnitServiceInterface defines the interface for organization unit service operations.
 type OrganizationUnitServiceInterface interface {
-	GetOrganizationUnitList() ([]model.OrganizationUnitBasic, *serviceerror.ServiceError)
+	GetOrganizationUnitList(limit, offset int) (*model.OrganizationUnitListResponse, *serviceerror.ServiceError)
 	CreateOrganizationUnit(
 		request model.OrganizationUnitRequest,
 	) (model.OrganizationUnit, *serviceerror.ServiceError)
@@ -55,13 +56,22 @@ func GetOrganizationUnitService() OrganizationUnitServiceInterface {
 }
 
 // GetOrganizationUnitList retrieves a list of organization units.
-func (ous *OrganizationUnitService) GetOrganizationUnitList() (
-	[]model.OrganizationUnitBasic, *serviceerror.ServiceError,
+// limit should be a positive integer and offset should be non-negative.
+func (ous *OrganizationUnitService) GetOrganizationUnitList(limit, offset int) (
+	*model.OrganizationUnitListResponse, *serviceerror.ServiceError,
 ) {
 	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, loggerComponentName))
-	logger.Debug("Listing organization units")
+	if err := validatePaginationParams(limit, offset); err != nil {
+		return nil, err
+	}
 
-	ouList, err := store.GetOrganizationUnitList()
+	totalCount, err := store.GetOrganizationUnitListCount()
+	if err != nil {
+		logger.Error("Failed to get organization unit count", log.Error(err))
+		return nil, &constants.ErrorInternalServerError
+	}
+
+	ouList, err := store.GetOrganizationUnitList(limit, offset)
 	if err != nil {
 		logger.Error("Failed to list organization units", log.Error(err))
 		return nil, &constants.ErrorInternalServerError
@@ -83,8 +93,15 @@ func (ous *OrganizationUnitService) GetOrganizationUnitList() (
 			ouList[i].OrganizationUnits = subOUs
 		}
 	}
+	response := &model.OrganizationUnitListResponse{
+		TotalResults:      totalCount,
+		OrganizationUnits: ouList,
+		StartIndex:        offset + 1,
+		Count:             len(ouList),
+		Links:             buildPaginationLinks(limit, offset, totalCount),
+	}
 
-	return ouList, nil
+	return response, nil
 }
 
 // CreateOrganizationUnit creates a new organization unit.
@@ -371,4 +388,54 @@ func (ous *OrganizationUnitService) validateOUHandle(handle string) *serviceerro
 	}
 
 	return nil
+}
+
+// validatePaginationParams validates pagination parameters.
+func validatePaginationParams(limit, offset int) *serviceerror.ServiceError {
+	if limit < 1 || limit > 100 {
+		return &constants.ErrorInvalidLimit
+	}
+	if offset < 0 {
+		return &constants.ErrorInvalidOffset
+	}
+	return nil
+}
+
+// buildPaginationLinks builds pagination links for the response.
+func buildPaginationLinks(limit, offset, totalCount int) []model.Link {
+	links := make([]model.Link, 0)
+
+	if offset > 0 {
+		links = append(links, model.Link{
+			Href: fmt.Sprintf("/organization-units?offset=0&limit=%d", limit),
+			Rel:  "first",
+		})
+
+		prevOffset := offset - limit
+		if prevOffset < 0 {
+			prevOffset = 0
+		}
+		links = append(links, model.Link{
+			Href: fmt.Sprintf("/organization-units?offset=%d&limit=%d", prevOffset, limit),
+			Rel:  "prev",
+		})
+	}
+
+	if offset+limit < totalCount {
+		nextOffset := offset + limit
+		links = append(links, model.Link{
+			Href: fmt.Sprintf("/organization-units?offset=%d&limit=%d", nextOffset, limit),
+			Rel:  "next",
+		})
+	}
+
+	lastPageOffset := ((totalCount - 1) / limit) * limit
+	if offset < lastPageOffset {
+		links = append(links, model.Link{
+			Href: fmt.Sprintf("/organization-units?offset=%d&limit=%d", lastPageOffset, limit),
+			Rel:  "last",
+		})
+	}
+
+	return links
 }

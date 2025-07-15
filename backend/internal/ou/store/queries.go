@@ -27,10 +27,16 @@ import (
 )
 
 var (
-	// QueryGetOrganizationUnitList is the query to get all organization units.
+	// QueryGetOrganizationUnitListCount is the query to get total count of organization units.
+	QueryGetOrganizationUnitListCount = dbmodel.DBQuery{
+		ID:    "OUQ-OU_MGT-00",
+		Query: `SELECT COUNT(*) as total FROM ORGANIZATION_UNIT`,
+	}
+
+	// QueryGetOrganizationUnitList is the query to get organization units with pagination.
 	QueryGetOrganizationUnitList = dbmodel.DBQuery{
 		ID:    "OUQ-OU_MGT-01",
-		Query: `SELECT OU_ID, HANDLE, NAME, DESCRIPTION, PARENT_ID FROM ORGANIZATION_UNIT`,
+		Query: `SELECT OU_ID, HANDLE, NAME, DESCRIPTION, PARENT_ID FROM ORGANIZATION_UNIT ORDER BY NAME LIMIT $1 OFFSET $2`,
 	}
 
 	// QueryCreateOrganizationUnit is the query to create a new organization unit.

@@ -161,14 +161,19 @@ func (suite *OUAPITestSuite) TestListOrganizationUnits() {
 		suite.T().Fatalf("Failed to read response body: %v", err)
 	}
 
-	var ous []OrganizationUnitBasic
-	err = json.Unmarshal(body, &ous)
+	var ouListResponse OrganizationUnitListResponse
+	err = json.Unmarshal(body, &ouListResponse)
 	suite.Require().NoError(err)
+
+	// Verify response structure
+	suite.GreaterOrEqual(ouListResponse.TotalResults, 1)
+	suite.Equal(1, ouListResponse.StartIndex)
+	suite.Equal(len(ouListResponse.OrganizationUnits), ouListResponse.Count)
 
 	// Verify the list contains our created OUs
 	foundParent := false
 	foundChild := false
-	for _, ou := range ous {
+	for _, ou := range ouListResponse.OrganizationUnits {
 		if ou.ID == createdOUID {
 			foundParent = true
 			suite.Equal(ouToCreate.Name, ou.Name)
@@ -182,6 +187,108 @@ func (suite *OUAPITestSuite) TestListOrganizationUnits() {
 	}
 	suite.True(foundParent, "Created parent OU should be in the list")
 	suite.True(foundChild, "Created child OU should be in the list")
+}
+
+func (suite *OUAPITestSuite) TestListOrganizationUnitsWithPagination() {
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest("GET", testServerURL+"/organization-units?limit=1&offset=0", nil)
+	suite.Require().NoError(err)
+
+	resp, err := client.Do(req)
+	suite.Require().NoError(err)
+	defer resp.Body.Close()
+
+	suite.Equal(http.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	suite.Require().NoError(err)
+
+	var ouListResponse OrganizationUnitListResponse
+	err = json.Unmarshal(body, &ouListResponse)
+	suite.Require().NoError(err)
+
+	suite.GreaterOrEqual(ouListResponse.TotalResults, 1)
+	suite.Equal(1, ouListResponse.StartIndex)
+	suite.LessOrEqual(ouListResponse.Count, 1)
+	if ouListResponse.TotalResults > 1 {
+		suite.NotEmpty(ouListResponse.Links)
+	}
+}
+
+func (suite *OUAPITestSuite) TestListOrganizationUnitsWithInvalidPagination() {
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest("GET", testServerURL+"/organization-units?limit=-1", nil)
+	suite.Require().NoError(err)
+
+	resp, err := client.Do(req)
+	suite.Require().NoError(err)
+	defer resp.Body.Close()
+
+	suite.Equal(http.StatusBadRequest, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	suite.Require().NoError(err)
+
+	var errorResp map[string]interface{}
+	err = json.Unmarshal(body, &errorResp)
+	suite.Require().NoError(err)
+
+	suite.Equal("OU-1011", errorResp["code"])
+
+	req, err = http.NewRequest("GET", testServerURL+"/organization-units?offset=-1", nil)
+	suite.Require().NoError(err)
+
+	resp, err = client.Do(req)
+	suite.Require().NoError(err)
+	defer resp.Body.Close()
+
+	suite.Equal(http.StatusBadRequest, resp.StatusCode)
+
+	body, err = io.ReadAll(resp.Body)
+	suite.Require().NoError(err)
+
+	err = json.Unmarshal(body, &errorResp)
+	suite.Require().NoError(err)
+
+	suite.Equal("OU-1012", errorResp["code"])
+}
+
+func (suite *OUAPITestSuite) TestListOrganizationUnitsWithOnlyOffset() {
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	req, err := http.NewRequest("GET", testServerURL+"/organization-units?offset=0", nil)
+	suite.Require().NoError(err)
+
+	resp, err := client.Do(req)
+	suite.Require().NoError(err)
+	defer resp.Body.Close()
+
+	suite.Equal(http.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	suite.Require().NoError(err)
+
+	var ouListResponse OrganizationUnitListResponse
+	err = json.Unmarshal(body, &ouListResponse)
+	suite.Require().NoError(err)
+
+	suite.GreaterOrEqual(ouListResponse.TotalResults, 1)
+	suite.Equal(1, ouListResponse.StartIndex)
+	suite.LessOrEqual(ouListResponse.Count, 30)
 }
 
 func (suite *OUAPITestSuite) TestUpdateOrganizationUnit() {

@@ -22,6 +22,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/asgardeo/thunder/internal/ou/constants"
 	"github.com/asgardeo/thunder/internal/ou/model"
@@ -34,6 +36,7 @@ import (
 )
 
 const loggerComponentName = "OrganizationUnitHandler"
+const limitDefault = 30
 
 // OrganizationUnitHandler is the handler for organization unit management operations.
 type OrganizationUnitHandler struct {
@@ -51,7 +54,17 @@ func NewOrganizationUnitHandler() *OrganizationUnitHandler {
 func (ouh *OrganizationUnitHandler) HandleOUListRequest(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, loggerComponentName))
 
-	ous, svcErr := ouh.service.GetOrganizationUnitList()
+	limit, offset, svcErr := parsePaginationParams(r.URL.Query())
+	if svcErr != nil {
+		ouh.handleError(w, logger, svcErr)
+		return
+	}
+
+	if limit == 0 {
+		limit = limitDefault
+	}
+
+	ouListResponse, svcErr := ouh.service.GetOrganizationUnitList(limit, offset)
 	if svcErr != nil {
 		ouh.handleError(w, logger, svcErr)
 		return
@@ -60,13 +73,16 @@ func (ouh *OrganizationUnitHandler) HandleOUListRequest(w http.ResponseWriter, r
 	w.Header().Set(serverconst.ContentTypeHeaderName, serverconst.ContentTypeJSON)
 	w.WriteHeader(http.StatusOK)
 
-	if err := json.NewEncoder(w).Encode(ous); err != nil {
+	if err := json.NewEncoder(w).Encode(ouListResponse); err != nil {
 		logger.Error("Error encoding response", log.Error(err))
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
 
-	logger.Debug("Successfully listed organization units")
+	logger.Debug("Successfully listed organization units with pagination",
+		log.Int("limit", limit), log.Int("offset", offset),
+		log.Int("totalResults", ouListResponse.TotalResults),
+		log.Int("count", ouListResponse.Count))
 }
 
 // HandleOUPostRequest handles the create organization unit request.
@@ -252,6 +268,9 @@ func (ouh *OrganizationUnitHandler) handleError(w http.ResponseWriter, logger *l
 		} else if svcErr.Code == constants.ErrorOrganizationUnitNameConflict.Code ||
 			svcErr.Code == constants.ErrorOrganizationUnitHandleConflict.Code {
 			statusCode = http.StatusConflict
+		} else if svcErr.Code == constants.ErrorInvalidLimit.Code ||
+			svcErr.Code == constants.ErrorInvalidOffset.Code {
+			statusCode = http.StatusBadRequest
 		}
 	default:
 		statusCode = http.StatusInternalServerError
@@ -281,4 +300,28 @@ func (ouh *OrganizationUnitHandler) sanitizeOrganizationUnitRequest(
 		Description: sysutils.SanitizeString(request.Description),
 		Parent:      request.Parent,
 	}
+}
+
+// parsePaginationParams parses limit and offset query parameters from the request.
+func parsePaginationParams(query url.Values) (int, int, *serviceerror.ServiceError) {
+	limit := 0
+	offset := 0
+
+	if limitStr := query.Get("limit"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err != nil {
+			return 0, 0, &constants.ErrorInvalidLimit
+		} else {
+			limit = parsedLimit
+		}
+	}
+
+	if offsetStr := query.Get("offset"); offsetStr != "" {
+		if parsedOffset, err := strconv.Atoi(offsetStr); err != nil {
+			return 0, 0, &constants.ErrorInvalidOffset
+		} else {
+			offset = parsedOffset
+		}
+	}
+
+	return limit, offset, nil
 }

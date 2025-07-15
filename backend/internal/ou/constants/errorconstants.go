@@ -83,6 +83,20 @@ var (
 		Error:            "Organization unit handle conflict",
 		ErrorDescription: "An organization unit with the same handle already exists under the same parent",
 	}
+	// ErrorInvalidLimit is the error returned when limit parameter is invalid.
+	ErrorInvalidLimit = serviceerror.ServiceError{
+		Type:             serviceerror.ClientErrorType,
+		Code:             "OU-1011",
+		Error:            "Invalid limit parameter",
+		ErrorDescription: "The limit parameter must be a positive integer",
+	}
+	// ErrorInvalidOffset is the error returned when offset parameter is invalid.
+	ErrorInvalidOffset = serviceerror.ServiceError{
+		Type:             serviceerror.ClientErrorType,
+		Code:             "OU-1012",
+		Error:            "Invalid offset parameter",
+		ErrorDescription: "The offset parameter must be a non-negative integer",
+	}
 )
 
 // Server errors for organization unit management operations.

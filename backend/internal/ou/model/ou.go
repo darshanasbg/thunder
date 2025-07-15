@@ -48,3 +48,18 @@ type OrganizationUnitRequest struct {
 	Description string  `json:"description,omitempty"`
 	Parent      *string `json:"parent"`
 }
+
+// Link represents a pagination link.
+type Link struct {
+	Href string `json:"href"`
+	Rel  string `json:"rel"`
+}
+
+// OrganizationUnitListResponse represents the response for listing organization units with pagination.
+type OrganizationUnitListResponse struct {
+	TotalResults      int                     `json:"totalResults"`
+	StartIndex        int                     `json:"startIndex"`
+	Count             int                     `json:"count"`
+	OrganizationUnits []OrganizationUnitBasic `json:"organizationUnits"`
+	Links             []Link                  `json:"links"`
+}
