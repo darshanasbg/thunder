@@ -610,6 +610,90 @@ paths:
                 type: string
               example: "Internal server error"
 
+  /users/authenticate:
+    post:
+      tags:
+        - users
+      summary: Authenticate a user
+      description: |
+        Authenticates a user by providing user attributes and credentials.
+        Returns the user ID, type, and organization unit if authentication succeeds.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticateUserRequest'
+            example:
+              email: "jane.doe@example.com"
+              password: "SecurePassword123!"
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticateUserResponse'
+              example:
+                id: "9a475e1e-b0cb-4b29-8df5-2e5b24fb0ed3"
+                type: "customer"
+                organizationUnit: "456e8400-e29b-41d4-a716-446655440001"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-request-format:
+                  summary: Invalid request format
+                  value:
+                    code: "USR-1001"
+                    message: "Invalid request format"
+                    description: "The request body is malformed or contains invalid data"
+                missing-attributes:
+                  summary: Missing required fields
+                  value:
+                    code: "USR-1016"
+                    message: "Missing required fields"
+                    description: "At least one identifying attribute must be provided"
+                missing-secrets:
+                  summary: Missing credentials
+                  value:
+                    code: "USR-1017"
+                    message: "Missing credentials"
+                    description: "At least one credential field must be provided"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-1019"
+                message: "Authentication failed"
+                description: "Invalid credentials provided"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-1003"
+                message: "User not found"
+                description: "No user found with the provided attributes"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-5000"
+                message: "Internal server error"
+                description: "An unexpected error occurred while processing the request"
+
 components:
   parameters:
     limitQueryParam:
@@ -789,6 +873,30 @@ components:
           type: object
           description: "User attributes"
           additionalProperties: true
+
+    AuthenticateUserRequest:
+      type: object
+      description: "Authentication request containing user attributes and credentials"
+      additionalProperties: true
+      example:
+        email: "jane.doe@example.com"
+        password: "SecurePassword123!"
+
+    AuthenticateUserResponse:
+      type: object
+      required: [id, type, organizationUnit]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "The unique identifier of the authenticated user"
+        type:
+          type: string
+          description: "The type of the authenticated user"
+        organizationUnit:
+          type: string
+          format: uuid
+          description: "The organization unit ID of the authenticated user"
 
     Error:
       type: object
