@@ -97,4 +97,18 @@ func (s *UserService) RegisterRoutes(mux *http.ServeMux) {
 			w.WriteHeader(http.StatusNoContent)
 		},
 	)
+
+	opts4 := server.RequestWrapOptions{
+		Cors: &server.Cors{
+			AllowedMethods:   "POST",
+			AllowedHeaders:   "Content-Type, Authorization",
+			AllowCredentials: true,
+		},
+	}
+	s.ServerOpsService.WrapHandleFunction(
+		mux, "POST /users/authenticate", &opts4, s.userHandler.HandleUserAuthenticateRequest)
+	s.ServerOpsService.WrapHandleFunction(mux, "OPTIONS /users/authenticate", &opts4,
+		func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		})
 }

@@ -50,6 +50,7 @@ type UserServiceInterface interface {
 	DeleteUser(userID string) *serviceerror.ServiceError
 	IdentifyUser(filters map[string]interface{}) (*string, *serviceerror.ServiceError)
 	VerifyUser(userID, credType, credValue string) (*model.User, *serviceerror.ServiceError)
+	AuthenticateUser(request model.AuthenticateUserRequest) (*model.AuthenticateUserResponse, *serviceerror.ServiceError)
 	ValidateUserIDs(userIDs []string) ([]string, *serviceerror.ServiceError)
 }
 
@@ -375,14 +376,87 @@ func (as *UserService) VerifyUser(userID, credType, credValue string) (*model.Us
 		return nil, logErrorAndReturnServerError(logger, "Failed to hash credential value", err)
 	}
 	if credentials.CredentialType != credType {
-		return nil, logErrorAndReturnServerError(logger, "Invalid credential type", nil, log.String("userID", userID))
+		logger.Debug("Invalid credential type",
+			log.String("userID", userID),
+			log.String("expectedType", credType),
+			log.String("actualType", credentials.CredentialType))
+		return nil, &constants.ErrorAuthenticationFailed
 	}
 	if credentials.Value != hashToCompare {
-		return nil, logErrorAndReturnServerError(logger, "Invalid credentials", nil, log.String("userID", userID))
+		logger.Debug("Invalid credentials provided", log.String("userID", userID))
+		return nil, &constants.ErrorAuthenticationFailed
 	}
 
 	logger.Debug("Successfully verified user", log.String("id", userID))
 	return &user, nil
+}
+
+// AuthenticateUser authenticates a user by combining identify and verify operations.
+func (as *UserService) AuthenticateUser(
+	request model.AuthenticateUserRequest,
+) (*model.AuthenticateUserResponse, *serviceerror.ServiceError) {
+	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, loggerComponentName))
+
+	if len(request) == 0 {
+		return nil, &constants.ErrorInvalidRequestFormat
+	}
+
+	identifyFilters := make(map[string]interface{})
+	credentials := make(map[string]interface{})
+
+	credentialFields := map[string]bool{
+		"password": true,
+		"pin":      true,
+		"secret":   true,
+	}
+
+	for key, value := range request {
+		if credentialFields[key] {
+			credentials[key] = value
+		} else {
+			identifyFilters[key] = value
+		}
+	}
+
+	if len(identifyFilters) == 0 {
+		return nil, &constants.ErrorMissingRequiredFields
+	}
+	if len(credentials) == 0 {
+		return nil, &constants.ErrorMissingCredentials
+	}
+
+	userID, svcErr := as.IdentifyUser(identifyFilters)
+	if svcErr != nil {
+		if svcErr.Code == constants.ErrorUserNotFound.Code {
+			return nil, &constants.ErrorUserNotFound
+		}
+		return nil, svcErr
+	}
+
+	var credType, credValue string
+	if password, exists := credentials["password"]; exists {
+		// Only support password authentication
+		credType = "password"
+		if passwordStr, ok := password.(string); ok {
+			credValue = passwordStr
+		} else {
+			return nil, &constants.ErrorInvalidRequestFormat
+		}
+	} else {
+		return nil, &constants.ErrorMissingCredentials
+	}
+
+	user, svcErr := as.VerifyUser(*userID, credType, credValue)
+	if svcErr != nil {
+		return nil, svcErr
+	}
+
+	logger.Info("User authenticated successfully", log.String("userID", *userID))
+	return &model.AuthenticateUserResponse{
+		ID:               user.ID,
+		Type:             user.Type,
+		OrganizationUnit: user.OrganizationUnit,
+	}, nil
 }
 
 // ValidateUserIDs validates that all provided user IDs exist.

@@ -51,6 +51,13 @@ type UserGroup struct {
 	Name string `json:"name"`
 }
 
+// AuthenticateUserResponse represents the response from user authentication
+type AuthenticateUserResponse struct {
+	ID               string `json:"id"`
+	Type             string `json:"type"`
+	OrganizationUnit string `json:"organizationUnit"`
+}
+
 // UserGroupListResponse represents the response for listing groups that a user belongs to.
 type UserGroupListResponse struct {
 	TotalResults int         `json:"totalResults"`
