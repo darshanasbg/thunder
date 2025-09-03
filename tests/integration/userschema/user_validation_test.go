@@ -29,33 +29,11 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// User represents a user for validation tests
-type User struct {
-	ID               string          `json:"id,omitempty"`
-	OrganizationUnit string          `json:"organizationUnit"`
-	Type             string          `json:"type"`
-	Attributes       json.RawMessage `json:"attributes,omitempty"`
-}
-
-// CreateUserRequest represents the request to create a user
-type CreateUserRequest struct {
-	OrganizationUnit string          `json:"organizationUnit"`
-	Type             string          `json:"type"`
-	Attributes       json.RawMessage `json:"attributes,omitempty"`
-}
-
-// UpdateUserRequest represents the request to update a user
-type UpdateUserRequest struct {
-	OrganizationUnit string          `json:"organizationUnit,omitempty"`
-	Type             string          `json:"type,omitempty"`
-	Attributes       json.RawMessage `json:"attributes,omitempty"`
-}
-
 type UserValidationTestSuite struct {
 	suite.Suite
-	client           *http.Client
-	createdSchemas   []string // Track schemas for cleanup
-	createdUsers     []string // Track users for cleanup
+	client         *http.Client
+	createdSchemas []string // Track schemas for cleanup
+	createdUsers   []string // Track users for cleanup
 }
 
 func TestUserValidationTestSuite(t *testing.T) {
@@ -71,18 +49,10 @@ func (ts *UserValidationTestSuite) SetupSuite() {
 	ts.createdSchemas = []string{}
 	ts.createdUsers = []string{}
 
-	// Create all schemas once for reuse across tests
-	employeeSchemaID := ts.createEmployeeSchema()
-	ts.createdSchemas = append(ts.createdSchemas, employeeSchemaID)
-
-	studentSchemaID := ts.createSchemaWithEnum()
-	ts.createdSchemas = append(ts.createdSchemas, studentSchemaID)
-
-	customerSchemaID := ts.createSchemaWithNestedObject()
-	ts.createdSchemas = append(ts.createdSchemas, customerSchemaID)
-
-	teacherSchemaID := ts.createSchemaWithArray()
-	ts.createdSchemas = append(ts.createdSchemas, teacherSchemaID)
+	ts.createEmployeeSchema()
+	ts.createSchemaWithEnum()
+	ts.createSchemaWithNestedObject()
+	ts.createSchemaWithArray()
 }
 
 func (ts *UserValidationTestSuite) TearDownSuite() {

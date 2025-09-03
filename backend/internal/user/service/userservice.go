@@ -174,6 +174,26 @@ func (as *UserService) CreateUser(user *model.User) (*model.User, *serviceerror.
 		return nil, svcErr
 	}
 
+	isValid, svcErr := as.userSchemaService.ValidateUserUniqueness(user.Type, user.Attributes,
+		func(filters map[string]interface{}) (*string, error) {
+			userID, svcErr := as.IdentifyUser(filters)
+			if svcErr != nil {
+				if svcErr.Code == constants.ErrorUserNotFound.Code {
+					return nil, nil
+				} else {
+					return nil, errors.New(svcErr.Error)
+				}
+			}
+			return userID, nil
+		})
+	if svcErr != nil {
+		return nil, svcErr
+	}
+
+	if !isValid {
+		return nil, &constants.ErrorAttributeConflict
+	}
+
 	user.ID = utils.GenerateUUID()
 
 	credentials, err := extractCredentials(user)
@@ -307,6 +327,26 @@ func (as *UserService) UpdateUser(userID string, user *model.User) (*model.User,
 
 	if svcErr := as.userSchemaService.ValidateUser(user.Type, user.Attributes); svcErr != nil {
 		return nil, svcErr
+	}
+
+	isValid, svcErr := as.userSchemaService.ValidateUserUniqueness(user.Type, user.Attributes,
+		func(filters map[string]interface{}) (*string, error) {
+			userID, svcErr := as.IdentifyUser(filters)
+			if svcErr != nil {
+				if svcErr.Code == constants.ErrorUserNotFound.Code {
+					return nil, nil
+				} else {
+					return nil, errors.New(svcErr.Error)
+				}
+			}
+			return userID, nil
+		})
+	if svcErr != nil {
+		return nil, svcErr
+	}
+
+	if !isValid {
+		return nil, &constants.ErrorAttributeConflict
 	}
 
 	err := store.UpdateUser(user)

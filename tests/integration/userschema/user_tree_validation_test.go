@@ -31,29 +31,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// CreateUserByPathRequest represents the request to create a user under a handle path
-type CreateUserByPathRequest struct {
-	Type       string          `json:"type"`
-	Attributes json.RawMessage `json:"attributes,omitempty"`
-}
-
-// CreateOURequest represents the request to create an organization unit
-type CreateOURequest struct {
-	Handle      string  `json:"handle"`
-	Name        string  `json:"name"`
-	Description string  `json:"description,omitempty"`
-	Parent      *string `json:"parent,omitempty"`
-}
-
-// OrganizationUnit represents an organization unit
-type OrganizationUnit struct {
-	ID          string  `json:"id"`
-	Handle      string  `json:"handle"`
-	Name        string  `json:"name"`
-	Description string  `json:"description,omitempty"`
-	Parent      *string `json:"parent,omitempty"`
-}
-
 type UserTreeValidationTestSuite struct {
 	suite.Suite
 	client         *http.Client

@@ -49,25 +49,16 @@ func (ts *UserValidationEdgeCasesTestSuite) SetupSuite() {
 	ts.createdSchemas = []string{}
 	ts.createdUsers = []string{}
 
-	employeeSchemaID := ts.createEmployeeSchema()
-	ts.createdSchemas = append(ts.createdSchemas, employeeSchemaID)
-
-	numericSchemaID := ts.createSchemaWithNumbers()
-	ts.createdSchemas = append(ts.createdSchemas, numericSchemaID)
-
-	statusSchemaID := ts.createSchemaWithStringEnum()
-	ts.createdSchemas = append(ts.createdSchemas, statusSchemaID)
-
-	mixedSchemaID := ts.createSchemaWithMixedEnum()
-	ts.createdSchemas = append(ts.createdSchemas, mixedSchemaID)
+	ts.createEmployeeSchema()
+	ts.createSchemaWithNumbers()
+	ts.createSchemaWithStringEnum()
+	ts.createSchemaWithMixedEnum()
 }
 
 func (ts *UserValidationEdgeCasesTestSuite) TearDownSuite() {
-	// Clean up created users first
 	for _, userID := range ts.createdUsers {
 		ts.deleteUser(userID)
 	}
-	// Then clean up created schemas
 	for _, schemaID := range ts.createdSchemas {
 		ts.deleteSchema(schemaID)
 	}
