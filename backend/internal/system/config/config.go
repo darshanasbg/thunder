@@ -125,6 +125,11 @@ type CryptoConfig struct {
 	Key string `yaml:"key" json:"key"`
 }
 
+// CORSConfig holds the configuration details for the CORS.
+type CORSConfig struct {
+	AllowedOrigins []string `yaml:"allowed_origins" json:"allowed_origins"`
+}
+
 // Config holds the complete configuration details of the server.
 type Config struct {
 	Server     ServerConfig     `yaml:"server" json:"server"`
@@ -135,6 +140,7 @@ type Config struct {
 	OAuth      OAuthConfig      `yaml:"oauth" json:"oauth"`
 	Flow       FlowConfig       `yaml:"flow" json:"flow"`
 	Crypto     CryptoConfig     `yaml:"crypto" json:"crypto"`
+	CORS       CORSConfig       `yaml:"cors" json:"cors"`
 }
 
 // LoadConfig loads the configurations from the specified YAML file and applies defaults.
