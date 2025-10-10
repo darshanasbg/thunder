@@ -27,8 +27,9 @@ import (
 
 // UserGroup represents a group with basic information for user endpoints.
 type UserGroup struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID                 string `json:"id"`
+	Name               string `json:"name"`
+	OrganizationUnitID string `json:"ouId"`
 }
 
 // AuthenticateUserResponse represents the response from user authentication
