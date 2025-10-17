@@ -76,6 +76,7 @@ RUN apk add --no-cache \
     lsof \
     sqlite \
     bash \
+    nodejs \
     curl \
     unzip
 
