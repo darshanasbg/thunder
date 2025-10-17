@@ -20,6 +20,7 @@ package granthandlers
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 	"time"
 
@@ -34,6 +35,14 @@ import (
 	"github.com/asgardeo/thunder/internal/system/jwt"
 	"github.com/asgardeo/thunder/internal/system/log"
 	userservice "github.com/asgardeo/thunder/internal/user/service"
+)
+
+// TODO: Temporary constant, move to a common place/ use a different strategy.
+const (
+	// USER_ATTRIBUTE_GROUPS is the constant for user's groups.
+	USER_ATTRIBUTE_GROUPS = "groups"
+	// DEFAULT_GROUP_LIST_LIMIT is the default limit for group list retrieval.
+	DEFAULT_GROUP_LIST_LIMIT = 20
 )
 
 // authorizationCodeGrantHandler handles the authorization code grant type.
@@ -203,6 +212,28 @@ func (h *authorizationCodeGrantHandler) HandleGrant(tokenRequest *model.TokenReq
 				jwtClaims[attr] = val
 				userAttributes[attr] = val
 			}
+		}
+
+		// Add groups if requested
+		if slices.Contains(oauthApp.Token.AccessToken.UserAttributes, USER_ATTRIBUTE_GROUPS) {
+			groups, svcErr := h.UserService.GetUserGroups(authCode.AuthorizedUserID, DEFAULT_GROUP_LIST_LIMIT, 0)
+			if svcErr != nil {
+				logger.Error("Failed to fetch user groups",
+					log.String("userID", authCode.AuthorizedUserID), log.Any("error", svcErr))
+				return nil, &model.ErrorResponse{
+					Error:            constants.ErrorServerError,
+					ErrorDescription: "Something went wrong",
+				}
+			}
+
+			// TODO: This is not working
+
+			var groupNames []string
+			for _, group := range groups.Groups {
+				groupNames = append(groupNames, group.Name)
+			}
+			jwtClaims[USER_ATTRIBUTE_GROUPS] = groupNames
+			userAttributes[USER_ATTRIBUTE_GROUPS] = groupNames
 		}
 	}
 
