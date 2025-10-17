@@ -226,9 +226,7 @@ func (h *authorizationCodeGrantHandler) HandleGrant(tokenRequest *model.TokenReq
 				}
 			}
 
-			// TODO: This is not working
-
-			var groupNames []string
+			groupNames := []string{}
 			for _, group := range groups.Groups {
 				groupNames = append(groupNames, group.Name)
 			}

@@ -461,3 +461,156 @@ func (suite *AuthorizationCodeGrantHandlerTestSuite) TestValidateAuthorizationCo
 	assert.Equal(suite.T(), constants.ErrorInvalidGrant, err.Error)
 	assert.Equal(suite.T(), "Expired authorization code", err.ErrorDescription)
 }
+
+func (suite *AuthorizationCodeGrantHandlerTestSuite) TestHandleGrant_WithGroups() {
+	// Setup OAuth app with groups in user attributes
+	oauthAppWithGroups := &appmodel.OAuthAppConfigProcessedDTO{
+		ClientID:           "test-client-id",
+		HashedClientSecret: "hashed-secret",
+		RedirectURIs:       []string{"https://client.example.com/callback"},
+		GrantTypes:         []constants.GrantType{constants.GrantTypeAuthorizationCode},
+		ResponseTypes:      []constants.ResponseType{constants.ResponseTypeCode},
+		TokenEndpointAuthMethod: []constants.TokenEndpointAuthMethod{
+			constants.TokenEndpointAuthMethodClientSecretPost},
+		Token: &appmodel.OAuthTokenConfig{
+			AccessToken: &appmodel.TokenConfig{
+				UserAttributes: []string{"email", "username", "groups"},
+			},
+		},
+	}
+
+	// Mock authorization code store to return valid code
+	suite.mockAuthZStore.On("GetAuthorizationCode", "test-client-id", "test-auth-code").
+		Return(suite.testAuthzCode, nil)
+	suite.mockAuthZStore.On("DeactivateAuthorizationCode", suite.testAuthzCode).Return(nil)
+
+	// Mock user service to return user for attributes
+	mockUser := &usermodel.User{
+		ID:         "test-user-id",
+		Attributes: json.RawMessage(`{"email":"test@example.com","username":"testuser"}`),
+	}
+	suite.mockUserService.On("GetUser", "test-user-id").Return(mockUser, nil)
+
+	// Mock user service to return groups
+	mockGroups := &usermodel.UserGroupListResponse{
+		TotalResults: 2,
+		StartIndex:   0,
+		Count:        2,
+		Groups: []usermodel.UserGroup{
+			{ID: "group1", Name: "Admin"},
+			{ID: "group2", Name: "Users"},
+		},
+	}
+	suite.mockUserService.On("GetUserGroups", "test-user-id", DEFAULT_GROUP_LIST_LIMIT, 0).
+		Return(mockGroups, nil)
+
+	// Mock JWT service to generate token
+	var capturedClaims map[string]interface{}
+	suite.mockJWTService.On("GenerateJWT", "test-user-id", "test-client-id",
+		mock.AnythingOfType("string"), mock.AnythingOfType("int64"), mock.AnythingOfType("map[string]interface {}")).
+		Run(func(args mock.Arguments) {
+			capturedClaims = args.Get(4).(map[string]interface{})
+		}).
+		Return("test-jwt-token", int64(3600), nil)
+
+	ctx := &model.TokenContext{
+		TokenAttributes: make(map[string]interface{}),
+	}
+
+	result, err := suite.handler.HandleGrant(suite.testTokenReq, oauthAppWithGroups, ctx)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+
+	// Verify groups are in JWT claims
+	assert.NotNil(suite.T(), capturedClaims["groups"])
+	groupsInClaims, ok := capturedClaims["groups"].([]string)
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), []string{"Admin", "Users"}, groupsInClaims)
+
+	// Verify groups are in user attributes
+	assert.NotNil(suite.T(), result.AccessToken.UserAttributes["groups"])
+	groupsInAttrs, ok := result.AccessToken.UserAttributes["groups"].([]string)
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), []string{"Admin", "Users"}, groupsInAttrs)
+
+	suite.mockAuthZStore.AssertExpectations(suite.T())
+	suite.mockUserService.AssertExpectations(suite.T())
+	suite.mockJWTService.AssertExpectations(suite.T())
+}
+
+func (suite *AuthorizationCodeGrantHandlerTestSuite) TestHandleGrant_WithEmptyGroups() {
+	// Setup OAuth app with groups in user attributes
+	oauthAppWithGroups := &appmodel.OAuthAppConfigProcessedDTO{
+		ClientID:           "test-client-id",
+		HashedClientSecret: "hashed-secret",
+		RedirectURIs:       []string{"https://client.example.com/callback"},
+		GrantTypes:         []constants.GrantType{constants.GrantTypeAuthorizationCode},
+		ResponseTypes:      []constants.ResponseType{constants.ResponseTypeCode},
+		TokenEndpointAuthMethod: []constants.TokenEndpointAuthMethod{
+			constants.TokenEndpointAuthMethodClientSecretPost},
+		Token: &appmodel.OAuthTokenConfig{
+			AccessToken: &appmodel.TokenConfig{
+				UserAttributes: []string{"email", "username", "groups"},
+			},
+		},
+	}
+
+	// Mock authorization code store to return valid code
+	suite.mockAuthZStore.On("GetAuthorizationCode", "test-client-id", "test-auth-code").
+		Return(suite.testAuthzCode, nil)
+	suite.mockAuthZStore.On("DeactivateAuthorizationCode", suite.testAuthzCode).Return(nil)
+
+	// Mock user service to return user for attributes
+	mockUser := &usermodel.User{
+		ID:         "test-user-id",
+		Attributes: json.RawMessage(`{"email":"test@example.com","username":"testuser"}`),
+	}
+	suite.mockUserService.On("GetUser", "test-user-id").Return(mockUser, nil)
+
+	// Mock user service to return empty groups
+	mockGroups := &usermodel.UserGroupListResponse{
+		TotalResults: 0,
+		StartIndex:   0,
+		Count:        0,
+		Groups:       []usermodel.UserGroup{}, // Empty groups
+	}
+	suite.mockUserService.On("GetUserGroups", "test-user-id", DEFAULT_GROUP_LIST_LIMIT, 0).
+		Return(mockGroups, nil)
+
+	// Mock JWT service to generate token
+	var capturedClaims map[string]interface{}
+	suite.mockJWTService.On("GenerateJWT", "test-user-id", "test-client-id",
+		mock.AnythingOfType("string"), mock.AnythingOfType("int64"), mock.AnythingOfType("map[string]interface {}")).
+		Run(func(args mock.Arguments) {
+			capturedClaims = args.Get(4).(map[string]interface{})
+		}).
+		Return("test-jwt-token", int64(3600), nil)
+
+	ctx := &model.TokenContext{
+		TokenAttributes: make(map[string]interface{}),
+	}
+
+	result, err := suite.handler.HandleGrant(suite.testTokenReq, oauthAppWithGroups, ctx)
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), result)
+
+	// Verify groups claim exists and is an empty array, not nil
+	assert.NotNil(suite.T(), capturedClaims["groups"])
+	groupsInClaims, ok := capturedClaims["groups"].([]string)
+	assert.True(suite.T(), ok)
+	assert.NotNil(suite.T(), groupsInClaims) // Should not be nil
+	assert.Empty(suite.T(), groupsInClaims)  // Should be empty array
+
+	// Verify groups are in user attributes as empty array
+	assert.NotNil(suite.T(), result.AccessToken.UserAttributes["groups"])
+	groupsInAttrs, ok := result.AccessToken.UserAttributes["groups"].([]string)
+	assert.True(suite.T(), ok)
+	assert.NotNil(suite.T(), groupsInAttrs) // Should not be nil
+	assert.Empty(suite.T(), groupsInAttrs)  // Should be empty array
+
+	suite.mockAuthZStore.AssertExpectations(suite.T())
+	suite.mockUserService.AssertExpectations(suite.T())
+	suite.mockJWTService.AssertExpectations(suite.T())
+}
