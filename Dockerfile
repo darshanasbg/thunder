@@ -29,6 +29,9 @@ WORKDIR /app
 # Copy the entire source code
 COPY . .
 
+# Ensure pnpm skips interactive prompts in non-TTY build environments
+ENV CI=true
+
 # Accept build arguments for certificate files
 ARG CERT_FILE
 ARG KEY_FILE
