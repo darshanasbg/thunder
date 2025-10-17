@@ -97,6 +97,7 @@ SAMPLE_APP_VERSION=$(grep -o '"version": *"[^"]*"' samples/apps/oauth/package.js
 SAMPLE_APP_FOLDER="sample-app-${SAMPLE_APP_VERSION}-${SAMPLE_PACKAGE_OS}-${SAMPLE_PACKAGE_ARCH}"
 
 # Server ports
+FRONTEND_PORT=9090
 BACKEND_PORT=8090
 
 # Directories
@@ -112,6 +113,9 @@ REPOSITORY_DB_DIR=$REPOSITORY_DIR/database
 SERVER_SCRIPTS_DIR=$BACKEND_BASE_DIR/scripts
 SERVER_DB_SCRIPTS_DIR=$BACKEND_BASE_DIR/dbscripts
 SECURITY_DIR=repository/resources/security
+FRONTEND_BASE_DIR=frontend
+GATE_APP_DIR=apps/gate
+FRONTEND_GATE_APP_DIR=$FRONTEND_BASE_DIR/$GATE_APP_DIR
 SAMPLE_BASE_DIR=samples
 SAMPLE_APP_DIR=$SAMPLE_BASE_DIR/apps/oauth
 SAMPLE_APP_SERVER_DIR=$SAMPLE_APP_DIR/server
@@ -246,6 +250,28 @@ function initialize_databases() {
     echo "================================================================"
 }
 
+function build_frontend() {
+    echo "================================================================"
+    echo "Building Next.js frontend apps..."
+    
+    # Check if pnpm is installed, if not install it
+    if ! command -v pnpm >/dev/null 2>&1; then
+        echo "pnpm not found, installing..."
+        npm install -g pnpm
+    fi
+    
+    # Navigate to frontend directory and install dependencies
+    cd "$FRONTEND_BASE_DIR" || exit 1
+    echo "Installing frontend dependencies..."
+    pnpm install
+    
+    echo "Building gate app..."
+    pnpm --filter gate build
+    
+    # Return to script directory
+    cd "$SCRIPT_DIR" || exit 1
+    echo "================================================================"
+}
 
 function prepare_backend_for_packaging() {
     echo "================================================================"
@@ -269,12 +295,31 @@ function prepare_backend_for_packaging() {
     echo "================================================================"
 }
 
+function prepare_frontend_for_packaging() {
+    echo "================================================================"
+    echo "Copying frontend artifacts..."
+
+    mkdir -p "$DIST_DIR/$PRODUCT_FOLDER/$GATE_APP_DIR"
+    
+    # Copy Next.js standalone output with all files including hidden ones
+    if [ -d "$FRONTEND_GATE_APP_DIR/dist/.next/standalone/apps/gate/dist/" ]; then
+        echo "Copying gate app build output..."
+        shopt -s dotglob
+        cp -r "$FRONTEND_GATE_APP_DIR/dist/.next/standalone/apps/gate/dist/" "$DIST_DIR/$PRODUCT_FOLDER/$GATE_APP_DIR"
+        shopt -u dotglob
+    else
+        echo "Warning: Frontend build output not found at $FRONTEND_GATE_APP_DIR/dist/.next/standalone"
+    fi
+    echo "================================================================"
+}
+
 function package_backend() {
     echo "================================================================"
     echo "Packaging backend artifacts..."
 
     mkdir -p "$DIST_DIR/$PRODUCT_FOLDER"
 
+    prepare_frontend_for_packaging
     prepare_backend_for_packaging
 
     # Copy the appropriate startup script based on the target OS
@@ -574,8 +619,20 @@ function ensure_certificates() {
 }
 
 function run() {
+    echo "=== Cleaning build output ==="
+    clean
+
+    echo "=== Building backend ==="
+    build_backend
+
+    echo "=== Building frontend ==="
+    build_frontend
+
     echo "=== Ensuring server certificates exist ==="
     ensure_certificates "$BACKEND_DIR/$SECURITY_DIR"
+
+    echo "=== Ensuring portal certificates exist ==="
+    ensure_certificates "$FRONTEND_GATE_APP_DIR"
 
     echo "=== Ensuring sample app certificates exist ==="
     ensure_certificates "$SAMPLE_APP_DIR"
@@ -589,18 +646,28 @@ function run() {
         lsof -ti tcp:$port | xargs kill -9 2>/dev/null || true
     }
 
+    kill_port $FRONTEND_PORT
     kill_port $BACKEND_PORT
 
-    echo "=== Starting backend ==="
+    echo "=== Starting frontend on https://localhost:$FRONTEND_PORT ==="
+    cd "$FRONTEND_BASE_DIR" || exit 1
+    FRONTEND_PORT=$FRONTEND_PORT pnpm --filter gate start &
+    FRONTEND_PID=$!
+    cd "$SCRIPT_DIR" || exit 1
+
+    echo "=== Starting backend on https://localhost:$BACKEND_PORT ==="
     BACKEND_PORT=$BACKEND_PORT go run -C "$BACKEND_DIR" . &
     BACKEND_PID=$!
 
     echo ""
-    echo "⚡ Thunder Backend : https://localhost:$BACKEND_PORT"
+    echo "🚀 Servers running:"
+    echo "👉 Frontend: https://localhost:$FRONTEND_PORT"
+    echo "👉 Backend : https://localhost:$BACKEND_PORT"
     echo "Press Ctrl+C to stop."
 
-    trap 'echo -e "\nStopping servers..."; kill $BACKEND_PID; exit' SIGINT
+    trap 'echo -e "\nStopping servers..."; kill $FRONTEND_PID $BACKEND_PID; exit' SIGINT
 
+    wait $FRONTEND_PID
     wait $BACKEND_PID
 }
 
@@ -613,6 +680,7 @@ case "$1" in
         ;;
     build_backend)
         build_backend
+        build_frontend
         package_backend
         ;;
     build_samples)
@@ -624,6 +692,7 @@ case "$1" in
         ;;
     build)
         build_backend
+        build_frontend
         package_backend
         build_sample_app
         package_sample_app
@@ -649,8 +718,9 @@ case "$1" in
         echo ""
         echo "  clean                    - Clean build artifacts"
         echo "  clean_all                - Clean all build artifacts including distributions"
-        echo "  build                    - Build the Thunder server only"
+        echo "  build                    - Build the complete Thunder application (backend + frontend + samples)"
         echo "  build_backend            - Build the Thunder backend server"
+        echo "  build_frontend           - Build the Next.js frontend applications"
         echo "  build_samples            - Build the sample applications"
         echo "  test_unit                - Run unit tests with coverage"
         echo "  test_integration         - Run integration tests"
