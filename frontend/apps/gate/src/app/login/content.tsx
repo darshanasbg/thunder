@@ -36,7 +36,8 @@ interface LoginInput {
 
 const LoginPageContent = function (): ReactElement {
   const [sessionDataKey, setSessionDataKey] = useState<string>('');
-  const [_appId, setAppId] = useState<string>('');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+  const [_, setAppId] = useState<string>('');
   const [insecureWarning, setInsecureWarning] = useState<boolean>(false);
   const [flowId, setFlowId] = useState<string>('');
   const [inputs, setInputs] = useState<LoginInput[]>([]);
@@ -55,7 +56,8 @@ const LoginPageContent = function (): ReactElement {
     setInsecureWarning(params.get('showInsecureWarning') === 'true');
 
     if (key) {
-      axios.post(
+      axios
+        .post(
           AppConfig.flowExecutionEndpoint,
           { applicationId: appId, flowType: 'AUTHENTICATION' },
           {
@@ -88,7 +90,7 @@ const LoginPageContent = function (): ReactElement {
     setShowPassword(prev => !prev);
   };
 
-  const handleSubmit = async (e: React.FormEvent): Promise<any> => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError('');
     const currentFlowId = flowId;
