@@ -17,17 +17,20 @@
 # ----------------------------------------------------------------------------
 
 # WSO2 Thunder Docker Image
-# Build stage - compile the Go binary for the target architecture
+# Build stage - compile the Go binary and build frontend for the target architecture
 FROM golang:1.25-alpine AS builder
 
-# Install build dependencies
-RUN apk add --no-cache git make bash sqlite openssl zip
+# Install build dependencies including Node.js and npm
+RUN apk add --no-cache git make bash sqlite openssl zip nodejs npm
 
 # Set the working directory
 WORKDIR /app
 
 # Copy the entire source code
 COPY . .
+
+# Ensure pnpm skips interactive prompts in non-TTY build environments
+ENV CI=true
 
 # Accept build arguments for certificate files
 ARG CERT_FILE
@@ -73,6 +76,7 @@ RUN apk add --no-cache \
     lsof \
     sqlite \
     bash \
+    nodejs \
     curl \
     unzip
 
