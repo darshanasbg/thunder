@@ -17,23 +17,25 @@
  */
 
 import type {JSX} from 'react';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import MuiCard from '@mui/material/Card';
-import Checkbox from '@mui/material/Checkbox';
-import Divider from '@mui/material/Divider';
-import FormLabel from '@mui/material/FormLabel';
-import FormControl from '@mui/material/FormControl';
-import Alert from '@mui/material/Alert';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import {styled} from '@mui/material/styles';
+import {
+  Box,
+  Button,
+  Card as MuiCard,
+  Checkbox,
+  Divider,
+  FormLabel,
+  FormControl,
+  Alert,
+  FormControlLabel,
+  TextField,
+  Typography,
+  styled,
+  AlertTitle
+} from '@wso2/oxygen-ui';
 import {useState} from 'react';
 import {SignIn} from '@asgardeo/react';
 import {Smartphone} from 'lucide-react';
 import {Google, Facebook, GitHub} from '@thunder/ui';
-import AlertTitle from '@mui/material/AlertTitle';
 
 const Card = styled(MuiCard)(({theme}) => ({
   display: 'flex',
@@ -42,7 +44,11 @@ const Card = styled(MuiCard)(({theme}) => ({
   width: '100%',
   padding: theme.spacing(4),
   gap: theme.spacing(2),
-  boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.1) !important',
+  background: 'rgba(215, 215, 215, 0.04)',
+  boxShadow: '0 5px 10px 0 rgba(6, 6, 14, 0.1), 0 0 0 0 rgba(199, 211, 234, 0.01) inset, 0 0 0 0 rgba(199, 211, 234, 0.12) inset',
   [theme.breakpoints.up('sm')]: {
     width: '450px',
   },
@@ -93,7 +99,7 @@ export default function SignInBox(): JSX.Element {
       >
         {({onSubmit, isLoading, components, error, isInitialized}) => (
           <>
-            <Typography component="h1" variant="h4" sx={{width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)'}}>
+            <Typography component="h1" variant="h5" sx={{width: '100%'}}>
               Sign in
             </Typography>
 
@@ -138,7 +144,7 @@ export default function SignInBox(): JSX.Element {
                               }
                             }}
                             noValidate
-                            sx={{display: 'flex', flexDirection: 'column', width: '100%', gap: 2, mb: 2}}
+                            sx={{display: 'flex', flexDirection: 'column', width: '100%', gap: 2, mb: 2, p: 3}}
                           >
                             <FormControl>
                               <FormLabel htmlFor="email">Email</FormLabel>

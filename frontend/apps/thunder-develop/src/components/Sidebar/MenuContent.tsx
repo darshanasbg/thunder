@@ -17,12 +17,7 @@
  */
 
 import {NavLink} from 'react-router';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import Stack from '@mui/material/Stack';
+import {List, ListItem, ListItemButton, ListItemIcon, ListItemText, Stack} from '@wso2/oxygen-ui';
 import {Blocks, LayoutGrid, User, UsersRound} from 'lucide-react';
 import type {JSX} from 'react';
 import useNavigation from '@/layouts/contexts/useNavigation';

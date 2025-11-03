@@ -17,10 +17,10 @@
  */
 
 import type {JSX} from 'react';
-import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {ColorModeSelect, theme} from '@thunder/ui';
-import CssBaseline from '@mui/material/CssBaseline';
+import OxygenUIThemeProvider from '@wso2/oxygen-ui/OxygenUIThemeProvider';
+import { ColorModeToggle } from '@wso2/oxygen-ui/ColorModeToggle';
 import {AsgardeoProvider} from '@asgardeo/react';
+import {Monitor, Moon, Sun} from 'lucide-react';
 import {useConfig} from '@thunder/commons-contexts';
 import App from './App';
 
@@ -32,13 +32,20 @@ export default function AppWithConfig(): JSX.Element {
       baseUrl={getServerUrl() ?? (import.meta.env.VITE_ASGARDEO_BASE_URL as string)}
       platform="AsgardeoV2"
     >
-      <StyledEngineProvider injectFirst>
-        <ThemeProvider theme={theme}>
-          <CssBaseline enableColorScheme />
-          <ColorModeSelect sx={{position: 'fixed', top: '1rem', right: '1rem'}} />
+      <OxygenUIThemeProvider>
+          <ColorModeToggle
+            sx={{
+              position: 'fixed',
+              top: '2.3rem',
+              right: '3rem',
+              zIndex: 2
+            }}
+            darkModeIcon={<Moon strokeWidth={1} />}
+            lightModeIcon={<Sun strokeWidth={1} />}
+            systemModeIcon={<Monitor strokeWidth={1} />}
+          />
           <App />
-        </ThemeProvider>
-      </StyledEngineProvider>
+      </OxygenUIThemeProvider>
     </AsgardeoProvider>
   );
 }

@@ -17,10 +17,7 @@
  */
 
 import {useNavigate} from 'react-router';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
+import {Box, Stack, Typography, Button} from '@wso2/oxygen-ui';
 import {Plus, RefreshCw} from 'lucide-react';
 import UserTypesList from '../components/UserTypesList';
 

@@ -17,9 +17,7 @@
  */
 
 import type {JSX} from 'react';
-import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {theme} from '@thunder/ui';
-import CssBaseline from '@mui/material/CssBaseline';
+import OxygenUIThemeProvider from '@wso2/oxygen-ui/OxygenUIThemeProvider';
 import {AsgardeoProvider} from '@asgardeo/react';
 import {useConfig} from '@thunder/commons-contexts';
 import App from './App';
@@ -34,12 +32,9 @@ export default function AppWithConfig(): JSX.Element {
       afterSignInUrl={getClientUrl() ?? (import.meta.env.VITE_ASGARDEO_AFTER_SIGN_IN_URL as string)}
       platform="AsgardeoV2"
     >
-      <StyledEngineProvider injectFirst>
-        <ThemeProvider theme={theme}>
-          <CssBaseline enableColorScheme />
-          <App />
-        </ThemeProvider>
-      </StyledEngineProvider>
+      <OxygenUIThemeProvider>
+        <App />
+      </OxygenUIThemeProvider>
     </AsgardeoProvider>
   );
 }

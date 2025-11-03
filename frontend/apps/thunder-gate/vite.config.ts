@@ -19,6 +19,7 @@
 import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
 import basicSsl from '@vitejs/plugin-basic-ssl';
+import {resolve} from 'path';
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5190;
 const HOST = process.env.HOST ?? 'localhost';
@@ -30,6 +31,16 @@ export default defineConfig({
   server: {
     port: PORT,
     host: HOST,
+  },
+  resolve: {
+    alias: {
+      // Force using the same React instance to avoid "Invalid hook call" errors
+      // when using linked packages
+      react: resolve(__dirname, './node_modules/react'),
+      'react-dom': resolve(__dirname, './node_modules/react-dom'),
+      '@emotion/react': resolve(__dirname, './node_modules/@emotion/react'),
+      '@emotion/styled': resolve(__dirname, './node_modules/@emotion/styled'),
+    },
   },
   plugins: [
     basicSsl(),

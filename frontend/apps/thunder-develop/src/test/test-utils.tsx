@@ -20,10 +20,7 @@
 import type {ReactElement, ReactNode} from 'react';
 import {render, type RenderOptions} from '@testing-library/react';
 import {MemoryRouter} from 'react-router';
-import {createTheme, ThemeProvider} from '@mui/material/styles';
-
-// Create a basic theme for testing
-const theme = createTheme();
+import OxygenUIThemeProvider from '@wso2/oxygen-ui/OxygenUIThemeProvider';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -33,7 +30,7 @@ interface ProvidersProps {
 function Providers({children}: ProvidersProps) {
   return (
     <MemoryRouter>
-      <ThemeProvider theme={theme}>{children}</ThemeProvider>
+      <OxygenUIThemeProvider>{children}</OxygenUIThemeProvider>
     </MemoryRouter>
   );
 }

@@ -18,21 +18,23 @@
 
 import {useNavigate} from 'react-router';
 import {useState} from 'react';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
-import FormLabel from '@mui/material/FormLabel';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import IconButton from '@mui/material/IconButton';
-import Alert from '@mui/material/Alert';
-import Snackbar from '@mui/material/Snackbar';
+import {
+  Box,
+  Stack,
+  Typography,
+  Button,
+  Paper,
+  FormLabel,
+  FormControl,
+  Select,
+  MenuItem,
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  IconButton,
+  Alert,
+  Snackbar,
+} from '@wso2/oxygen-ui';
 import {ArrowLeft, Plus, Save, X} from 'lucide-react';
 import useCreateUserType from '../api/useCreateUserType';
 import type {PropertyDefinition, UserSchemaDefinition, PropertyType, SchemaPropertyInput} from '../types/user-types';

@@ -17,14 +17,7 @@
  */
 
 import {useNavigate} from 'react-router';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import InputAdornment from '@mui/material/InputAdornment';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
+import {Box, Stack, Typography, TextField, Button, InputAdornment, Select, MenuItem} from '@wso2/oxygen-ui';
 import {useMemo, useState} from 'react';
 import {Plus, RefreshCw, Search} from 'lucide-react';
 import UsersList from '../components/UsersList';

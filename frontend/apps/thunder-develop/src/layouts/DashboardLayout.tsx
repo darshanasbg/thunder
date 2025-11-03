@@ -16,10 +16,9 @@
  * under the License.
  */
 
-import CssBaseline from '@mui/material/CssBaseline';
 import {Outlet} from 'react-router';
 import type {ReactNode} from 'react';
-import Box from '@mui/material/Box';
+import {Box} from '@wso2/oxygen-ui';
 import {Layout} from '@thunder/ui';
 import SideMenu from '../components/Sidebar/SideMenu';
 import Header from '../components/Header/Header';
@@ -29,8 +28,7 @@ export default function DashboardLayout(): ReactNode {
   return (
     <NavigationProvider>
       <Layout.Provider>
-        <CssBaseline enableColorScheme />
-        <Layout.Root>
+        <Layout.Root sx={{ minHeight: "100vh" }}>
           <Layout.Sidebar>
             <SideMenu />
           </Layout.Sidebar>

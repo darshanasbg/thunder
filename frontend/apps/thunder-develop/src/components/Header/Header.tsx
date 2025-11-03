@@ -16,11 +16,10 @@
  * under the License.
  */
 
-import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
-import {ColorModeIconDropdown} from '@thunder/ui';
+import {Stack, Tooltip} from '@wso2/oxygen-ui';
+import {ColorModeToggle} from '@wso2/oxygen-ui/ColorModeToggle';
 import type {JSX} from 'react';
-import {Bell} from 'lucide-react';
+import {Bell, Monitor, Moon, Sun} from 'lucide-react';
 import NavbarBreadcrumbs from '../Navbar/NavbarBreadcrumbs';
 import MenuButton from '../Sidebar/MenuButton';
 import Search from './Search';
@@ -45,10 +44,15 @@ export default function Header(): JSX.Element {
         <Search />
         <Tooltip title="Coming soon">
           <MenuButton showBadge aria-label="Open notifications">
-            <Bell size={16} />
+            <Bell strokeWidth={1} />
           </MenuButton>
         </Tooltip>
-        <ColorModeIconDropdown />
+        <ColorModeToggle
+          data-testid="theme-toggle"
+          darkModeIcon={<Moon strokeWidth={1} />}
+          lightModeIcon={<Sun strokeWidth={1} />}
+          systemModeIcon={<Monitor strokeWidth={1} />}
+        />
       </Stack>
     </Stack>
   );

@@ -19,15 +19,7 @@
 import {useNavigate} from 'react-router';
 import {useForm, Controller} from 'react-hook-form';
 import {useMemo, useState, useEffect} from 'react';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
-import FormLabel from '@mui/material/FormLabel';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
+import {Box, Stack, Typography, Button, Paper, FormLabel, FormControl, Select, MenuItem} from '@wso2/oxygen-ui';
 import {ArrowLeft, Plus, Save} from 'lucide-react';
 import useGetUserSchemas from '../api/useGetUserSchemas';
 import type {SchemaInterface} from '../types/users';
