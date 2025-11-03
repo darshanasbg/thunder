@@ -45,8 +45,29 @@ var (
 		Parent:      nil,
 	}
 
+	testUserSchema = testutils.UserSchema{
+		Name: "basic_auth_user",
+		Schema: map[string]interface{}{
+			"username": map[string]interface{}{
+				"type": "string",
+			},
+			"password": map[string]interface{}{
+				"type": "string",
+			},
+			"email": map[string]interface{}{
+				"type": "string",
+			},
+			"firstName": map[string]interface{}{
+				"type": "string",
+			},
+			"lastName": map[string]interface{}{
+				"type": "string",
+			},
+		},
+	}
+
 	testUser = testutils.User{
-		Type: "person",
+		Type: testUserSchema.Name,
 		Attributes: json.RawMessage(`{
 			"username": "testuser",
 			"password": "testpassword",
@@ -58,8 +79,9 @@ var (
 )
 
 var (
-	testAppID string
-	testOUID  string
+	testAppID    string
+	testOUID     string
+	userSchemaID string
 )
 
 type BasicAuthFlowTestSuite struct {
@@ -89,6 +111,12 @@ func (ts *BasicAuthFlowTestSuite) SetupSuite() {
 	}
 	testAppID = appID
 
+	schemaID, err := testutils.CreateUserType(testUserSchema)
+	if err != nil {
+		ts.T().Fatalf("Failed to create test user schema during setup: %v", err)
+	}
+	userSchemaID = schemaID
+
 	// Create test user with the created OU
 	testUser := testUser
 	testUser.OrganizationUnit = testOUID
@@ -116,6 +144,12 @@ func (ts *BasicAuthFlowTestSuite) TearDownSuite() {
 	if testOUID != "" {
 		if err := testutils.DeleteOrganizationUnit(testOUID); err != nil {
 			ts.T().Logf("Failed to delete test organization unit during teardown: %v", err)
+		}
+	}
+
+	if userSchemaID != "" {
+		if err := testutils.DeleteUserType(userSchemaID); err != nil {
+			ts.T().Logf("Failed to delete test user schema during teardown: %v", err)
 		}
 	}
 
@@ -169,7 +203,7 @@ func (ts *BasicAuthFlowTestSuite) TestBasicAuthFlowSuccess() {
 	ts.Require().NotNil(jwtClaims, "JWT claims should not be nil")
 
 	// Validate JWT contains expected user type and OU ID
-	ts.Require().Equal("person", jwtClaims.UserType, "Expected userType to be 'person'")
+	ts.Require().Equal(testUserSchema.Name, jwtClaims.UserType, "Expected userType to match created schema")
 	ts.Require().Equal(testOUID, jwtClaims.OuID, "Expected ouId to match the created organization unit")
 	ts.Require().Equal(testAppID, jwtClaims.Aud, "Expected aud to match the application ID")
 	ts.Require().NotEmpty(jwtClaims.Sub, "JWT subject should not be empty")
@@ -204,7 +238,7 @@ func (ts *BasicAuthFlowTestSuite) TestBasicAuthFlowSuccessWithSingleRequest() {
 	ts.Require().NotNil(jwtClaims, "JWT claims should not be nil")
 
 	// Validate JWT contains expected user type and OU ID
-	ts.Require().Equal("person", jwtClaims.UserType, "Expected userType to be 'person'")
+	ts.Require().Equal(testUserSchema.Name, jwtClaims.UserType, "Expected userType to match created schema")
 	ts.Require().Equal(testOUID, jwtClaims.OuID, "Expected ouId to match the created organization unit")
 	ts.Require().Equal(testAppID, jwtClaims.Aud, "Expected aud to match the application ID")
 	ts.Require().NotEmpty(jwtClaims.Sub, "JWT subject should not be empty")
@@ -266,7 +300,7 @@ func (ts *BasicAuthFlowTestSuite) TestBasicAuthFlowWithTwoStepInput() {
 	ts.Require().NotNil(jwtClaims, "JWT claims should not be nil")
 
 	// Validate JWT contains expected user type and OU ID
-	ts.Require().Equal("person", jwtClaims.UserType, "Expected userType to be 'person'")
+	ts.Require().Equal(testUserSchema.Name, jwtClaims.UserType, "Expected userType to match created schema")
 	ts.Require().Equal(testOUID, jwtClaims.OuID, "Expected ouId to match the created organization unit")
 	ts.Require().Equal(testAppID, jwtClaims.Aud, "Expected aud to match the application ID")
 	ts.Require().NotEmpty(jwtClaims.Sub, "JWT subject should not be empty")

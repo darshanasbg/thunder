@@ -50,8 +50,32 @@ var (
 		Parent:      nil,
 	}
 
+	smsAuthUserSchema = testutils.UserSchema{
+		Name: "sms_auth_user",
+		Schema: map[string]interface{}{
+			"username": map[string]interface{}{
+				"type": "string",
+			},
+			"password": map[string]interface{}{
+				"type": "string",
+			},
+			"email": map[string]interface{}{
+				"type": "string",
+			},
+			"firstName": map[string]interface{}{
+				"type": "string",
+			},
+			"lastName": map[string]interface{}{
+				"type": "string",
+			},
+			"mobileNumber": map[string]interface{}{
+				"type": "string",
+			},
+		},
+	}
+
 	testUserWithMobile = testutils.User{
-		Type: "person",
+		Type: smsAuthUserSchema.Name,
 		Attributes: json.RawMessage(`{
 			"username": "smsuser",
 			"password": "testpassword",
@@ -64,8 +88,9 @@ var (
 )
 
 var (
-	smsAuthTestAppID string
-	smsAuthTestOUID  string
+	smsAuthTestAppID    string
+	smsAuthTestOUID     string
+	smsAuthUserSchemaID string
 )
 
 // NotificationSenderRequest represents the request to create a message notification sender.
@@ -120,6 +145,12 @@ func (ts *SMSAuthFlowTestSuite) SetupSuite() {
 	}
 	smsAuthTestAppID = appID
 
+	schemaID, err := testutils.CreateUserType(smsAuthUserSchema)
+	if err != nil {
+		ts.T().Fatalf("Failed to create test user schema during setup: %v", err)
+	}
+	smsAuthUserSchemaID = schemaID
+
 	// Start mock notification server
 	ts.mockServer = testutils.NewMockNotificationServer(mockNotificationServerPort)
 	err = ts.mockServer.Start()
@@ -171,6 +202,12 @@ func (ts *SMSAuthFlowTestSuite) TearDownSuite() {
 	if smsAuthTestOUID != "" {
 		if err := testutils.DeleteOrganizationUnit(smsAuthTestOUID); err != nil {
 			ts.T().Logf("Failed to delete test organization unit during teardown: %v", err)
+		}
+	}
+
+	if smsAuthUserSchemaID != "" {
+		if err := testutils.DeleteUserType(smsAuthUserSchemaID); err != nil {
+			ts.T().Logf("Failed to delete test user schema during teardown: %v", err)
 		}
 	}
 
@@ -255,7 +292,7 @@ func (ts *SMSAuthFlowTestSuite) TestSMSAuthFlowWithMobileNumber() {
 	ts.Require().NotNil(jwtClaims, "JWT claims should not be nil")
 
 	// Validate JWT contains expected user type and OU ID
-	ts.Require().Equal("person", jwtClaims.UserType, "Expected userType to be 'person'")
+	ts.Require().Equal(smsAuthUserSchema.Name, jwtClaims.UserType, "Expected userType to match created schema")
 	ts.Require().Equal(smsAuthTestOUID, jwtClaims.OuID, "Expected ouId to match the created organization unit")
 	ts.Require().Equal(smsAuthTestAppID, jwtClaims.Aud, "Expected aud to match the application ID")
 	ts.Require().NotEmpty(jwtClaims.Sub, "JWT subject should not be empty")
@@ -351,7 +388,7 @@ func (ts *SMSAuthFlowTestSuite) TestSMSAuthFlowWithUsername() {
 	ts.Require().NotNil(jwtClaims, "JWT claims should not be nil")
 
 	// Validate JWT contains expected user type and OU ID
-	ts.Require().Equal("person", jwtClaims.UserType, "Expected userType to be 'person'")
+	ts.Require().Equal(smsAuthUserSchema.Name, jwtClaims.UserType, "Expected userType to match created schema")
 	ts.Require().Equal(smsAuthTestOUID, jwtClaims.OuID, "Expected ouId to match the created organization unit")
 	ts.Require().Equal(smsAuthTestAppID, jwtClaims.Aud, "Expected aud to match the application ID")
 	ts.Require().NotEmpty(jwtClaims.Sub, "JWT subject should not be empty")
@@ -467,7 +504,7 @@ func (ts *SMSAuthFlowTestSuite) TestSMSAuthFlowSingleRequestWithMobileNumber() {
 	ts.Require().NotNil(jwtClaims, "JWT claims should not be nil")
 
 	// Validate JWT contains expected user type and OU ID
-	ts.Require().Equal("person", jwtClaims.UserType, "Expected userType to be 'person'")
+	ts.Require().Equal(smsAuthUserSchema.Name, jwtClaims.UserType, "Expected userType to match created schema")
 	ts.Require().Equal(smsAuthTestOUID, jwtClaims.OuID, "Expected ouId to match the created organization unit")
 	ts.Require().Equal(smsAuthTestAppID, jwtClaims.Aud, "Expected aud to match the application ID")
 	ts.Require().NotEmpty(jwtClaims.Sub, "JWT subject should not be empty")

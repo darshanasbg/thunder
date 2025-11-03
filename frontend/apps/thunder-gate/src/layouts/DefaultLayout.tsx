@@ -17,7 +17,7 @@
  */
 
 import {Outlet} from 'react-router';
-import Box from '@mui/material/Box';
+import {Box} from '@wso2/oxygen-ui';
 import type {JSX} from 'react';
 
 export default function DefaultLayout(): JSX.Element {

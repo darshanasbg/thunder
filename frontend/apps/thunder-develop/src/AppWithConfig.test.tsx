@@ -60,11 +60,6 @@ vi.mock('./App', () => ({
   default: () => <div data-testid="app">App Component</div>,
 }));
 
-// Mock CssBaseline
-vi.mock('@mui/material/CssBaseline', () => ({
-  default: () => <div data-testid="css-baseline">CssBaseline</div>,
-}));
-
 // Mock theme
 vi.mock('@thunder/ui', () => ({
   theme: {
@@ -192,15 +187,5 @@ describe('AppWithConfig', () => {
     expect(provider).toHaveAttribute('data-base-url', 'https://default-base.example.com');
     expect(provider).toHaveAttribute('data-client-id', 'config-client-id');
     expect(provider).toHaveAttribute('data-after-sign-in-url', 'https://default-signin.example.com');
-  });
-
-  it('renders CssBaseline component', () => {
-    mockGetClientId.mockReturnValue('test-client-id');
-    mockGetServerUrl.mockReturnValue('https://test-server.example.com');
-    mockGetClientUrl.mockReturnValue('https://test-client.example.com');
-
-    render(<AppWithConfig />);
-
-    expect(screen.getByTestId('css-baseline')).toBeInTheDocument();
   });
 });

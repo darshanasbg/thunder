@@ -555,6 +555,9 @@ func (us *userService) validateUserAndUniqueness(
 ) *serviceerror.ServiceError {
 	isValid, svcErr := us.userSchemaService.ValidateUser(userType, attributes)
 	if svcErr != nil {
+		if svcErr.Code == userschema.ErrorUserSchemaNotFound.Code {
+			return &ErrorUserSchemaNotFound
+		}
 		return logErrorAndReturnServerError(logger, "Failed to validate user schema", nil)
 	}
 	if !isValid {
@@ -574,6 +577,9 @@ func (us *userService) validateUserAndUniqueness(
 			return userID, nil
 		})
 	if svcErr != nil {
+		if svcErr.Code == userschema.ErrorUserSchemaNotFound.Code {
+			return &ErrorUserSchemaNotFound
+		}
 		return logErrorAndReturnServerError(logger, "Failed to validate user schema", nil)
 	}
 

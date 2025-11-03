@@ -17,8 +17,7 @@
  */
 
 import type {JSX} from 'react';
-import Stack from '@mui/material/Stack';
-import {alpha} from '@mui/material/styles';
+import {Stack} from '@wso2/oxygen-ui';
 import SignInBox from './SignInBox';
 import SignInSlogan from './SignInSlogan';
 
@@ -34,21 +33,7 @@ export default function SignInSide(): JSX.Element {
           justifyContent: 'center',
           height: 'calc((1 - var(--template-frame-height, 0)) * 100%)',
           minHeight: '100%',
-        },
-        (theme) => ({
-          '&::before': {
-            content: '""',
-            display: 'block',
-            position: 'absolute',
-            zIndex: -1,
-            inset: 0,
-            backgroundImage: `radial-gradient(ellipse at 50% 50%, ${alpha(theme.palette.primary.light, 0.1)}, hsl(0, 0%, 100%))`,
-            backgroundRepeat: 'no-repeat',
-            ...theme.applyStyles('dark', {
-              backgroundImage: `radial-gradient(at 50% 50%, ${alpha(theme.palette.primary.dark, 0.15)}, hsl(220, 30%, 5%))`,
-            }),
-          },
-        }),
+        }
       ]}
     >
       <Stack

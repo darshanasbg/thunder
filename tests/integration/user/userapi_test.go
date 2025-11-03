@@ -57,6 +57,24 @@ type groupCreateResponse struct {
 }
 
 var (
+	userSchema = testutils.UserSchema{
+		Name: "person",
+		Schema: map[string]interface{}{
+			"age": map[string]interface{}{"type": "number"},
+			"roles": map[string]interface{}{
+				"type":  "array",
+				"items": map[string]interface{}{"type": "string"},
+			},
+			"address": map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"city": map[string]interface{}{"type": "string"},
+					"zip":  map[string]interface{}{"type": "string"},
+				},
+			},
+		},
+	}
+
 	testUser = testutils.User{
 		Type:       "person",
 		Attributes: json.RawMessage(`{"age": 25, "roles": ["viewer"], "address": {"city": "Seattle", "zip": "98101"}}`),
@@ -84,6 +102,7 @@ var (
 	createdUserID  string
 	testOUID       string
 	createdGroupID string
+	userSchemaID   string
 )
 
 type UserAPITestSuite struct {
@@ -103,6 +122,12 @@ func (ts *UserAPITestSuite) SetupSuite() {
 		ts.T().Fatalf("Failed to create organization unit during setup: %v", err)
 	}
 	testOUID = ouID
+
+	schemaID, err := testutils.CreateUserType(userSchema)
+	if err != nil {
+		ts.T().Fatalf("Failed to create user schema during setup: %v", err)
+	}
+	userSchemaID = schemaID
 
 	// Update user template with the created OU ID
 	testUser := testUser
@@ -155,6 +180,12 @@ func (ts *UserAPITestSuite) TearDownSuite() {
 		err := deleteOrganizationUnit(testOUID)
 		if err != nil {
 			ts.T().Logf("Failed to delete organization unit during teardown: %v", err)
+		}
+	}
+
+	if userSchemaID != "" {
+		if err := testutils.DeleteUserType(userSchemaID); err != nil {
+			ts.T().Logf("Failed to delete user schema during teardown: %v", err)
 		}
 	}
 }

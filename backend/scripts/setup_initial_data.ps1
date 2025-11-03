@@ -236,7 +236,7 @@ function New-UserSchema {
     Write-Info "Creating Default user schema..."
     
     $body = @{
-        name = "default-user-schema"
+        name = "person"
         schema = @{
             sub = @{
                 type = "string"
@@ -309,7 +309,7 @@ function New-AdminUser {
     Write-Info "Creating admin user..."
     
     $body = @{
-        type = "default-user-schema"
+        type = "person"
         attributes = @{
             username = "admin"
             password = "admin"

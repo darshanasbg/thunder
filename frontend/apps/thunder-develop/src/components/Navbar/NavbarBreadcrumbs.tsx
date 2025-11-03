@@ -16,11 +16,8 @@
  * under the License.
  */
 
-import {styled} from '@mui/material/styles';
-import Typography from '@mui/material/Typography';
-import Breadcrumbs, {breadcrumbsClasses} from '@mui/material/Breadcrumbs';
+import {styled, Typography, Breadcrumbs, breadcrumbsClasses, Box} from '@wso2/oxygen-ui';
 import {ChevronRightIcon} from 'lucide-react';
-import Box from '@mui/material/Box';
 import type {JSX} from 'react';
 import useNavigation from '@/layouts/contexts/useNavigation';
 

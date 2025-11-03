@@ -22,6 +22,10 @@ import (
 	"github.com/asgardeo/thunder/tests/integration/testutils"
 )
 
+const (
+	testServerURL = "https://localhost:8095"
+)
+
 // MemberType represents the type of member entity.
 type MemberType string
 

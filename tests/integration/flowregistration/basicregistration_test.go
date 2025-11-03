@@ -44,6 +44,30 @@ var (
 		Description: "Organization unit for registration flow testing",
 		Parent:      nil,
 	}
+
+	testUserSchema = testutils.UserSchema{
+		Name: "test-user-type",
+		Schema: map[string]interface{}{
+			"username": map[string]interface{}{
+				"type": "string",
+			},
+			"password": map[string]interface{}{
+				"type": "string",
+			},
+			"email": map[string]interface{}{
+				"type": "string",
+			},
+			"firstName": map[string]interface{}{
+				"type": "string",
+			},
+			"lastName": map[string]interface{}{
+				"type": "string",
+			},
+			"mobileNumber": map[string]interface{}{
+				"type": "string",
+			},
+		},
+	}
 )
 
 var (
@@ -53,7 +77,8 @@ var (
 
 type BasicRegistrationFlowTestSuite struct {
 	suite.Suite
-	config *TestSuiteConfig
+	config         *TestSuiteConfig
+	userSchemaID   string
 }
 
 func TestBasicRegistrationFlowTestSuite(t *testing.T) {
@@ -63,6 +88,12 @@ func TestBasicRegistrationFlowTestSuite(t *testing.T) {
 func (ts *BasicRegistrationFlowTestSuite) SetupSuite() {
 	// Initialize config
 	ts.config = &TestSuiteConfig{}
+
+	schemaID, err := testutils.CreateUserType(testUserSchema)
+	if err != nil {
+		ts.T().Fatalf("Failed to create test user schema during setup: %v", err)
+	}
+	ts.userSchemaID = schemaID
 
 	// Create test organization unit
 	ouID, err := testutils.CreateOrganizationUnit(testOU)
@@ -108,6 +139,12 @@ func (ts *BasicRegistrationFlowTestSuite) TearDownSuite() {
 	if testOUID != "" {
 		if err := testutils.DeleteOrganizationUnit(testOUID); err != nil {
 			ts.T().Logf("Failed to delete test organization unit during teardown: %v", err)
+		}
+	}
+
+	if ts.userSchemaID != "" {
+		if err := testutils.DeleteUserType(ts.userSchemaID); err != nil {
+			ts.T().Logf("Failed to delete test user schema during teardown: %v", err)
 		}
 	}
 
@@ -177,7 +214,7 @@ func (ts *BasicRegistrationFlowTestSuite) TestBasicRegistrationFlowSuccess() {
 	ts.Require().NotNil(jwtClaims, "JWT claims should not be nil")
 
 	// Validate JWT contains expected user type and OU ID
-	ts.Require().Equal("test-user-type", jwtClaims.UserType, "Expected userType to be 'test-user-type'")
+	ts.Require().Equal(testUserSchema.Name, jwtClaims.UserType, "Expected userType to match created schema")
 	ts.Require().Equal(registrationOUID, jwtClaims.OuID, "Expected ouId to match the created organization unit")
 	ts.Require().Equal(testAppID, jwtClaims.Aud, "Expected aud to match the application ID")
 	ts.Require().NotEmpty(jwtClaims.Sub, "JWT subject should not be empty")
@@ -199,7 +236,7 @@ func (ts *BasicRegistrationFlowTestSuite) TestBasicRegistrationFlowDuplicateUser
 	// Create a test user first
 	testUser := testutils.User{
 		OrganizationUnit: testOUID,
-		Type:             "test-user-type",
+		Type:             testUserSchema.Name,
 		Attributes: json.RawMessage(`{
 			"username": "duplicateuser",
 			"password": "testpassword",
@@ -304,7 +341,7 @@ func (ts *BasicRegistrationFlowTestSuite) TestBasicRegistrationFlowInitialInvali
 	ts.Require().NotNil(jwtClaims, "JWT claims should not be nil")
 
 	// Validate JWT contains expected user type and OU ID
-	ts.Require().Equal("test-user-type", jwtClaims.UserType, "Expected userType to be 'test-user-type'")
+	ts.Require().Equal(testUserSchema.Name, jwtClaims.UserType, "Expected userType to match created schema")
 	ts.Require().Equal(registrationOUID, jwtClaims.OuID, "Expected ouId to match the created organization unit")
 	ts.Require().Equal(testAppID, jwtClaims.Aud, "Expected aud to match the application ID")
 	ts.Require().NotEmpty(jwtClaims.Sub, "JWT subject should not be empty")
@@ -352,7 +389,7 @@ func (ts *BasicRegistrationFlowTestSuite) TestBasicRegistrationFlowSingleRequest
 	ts.Require().NotNil(jwtClaims, "JWT claims should not be nil")
 
 	// Validate JWT contains expected user type and OU ID
-	ts.Require().Equal("test-user-type", jwtClaims.UserType, "Expected userType to be 'test-user-type'")
+	ts.Require().Equal(testUserSchema.Name, jwtClaims.UserType, "Expected userType to match created schema")
 	ts.Require().Equal(registrationOUID, jwtClaims.OuID, "Expected ouId to match the created organization unit")
 	ts.Require().Equal(testAppID, jwtClaims.Aud, "Expected aud to match the application ID")
 	ts.Require().NotEmpty(jwtClaims.Sub, "JWT subject should not be empty")

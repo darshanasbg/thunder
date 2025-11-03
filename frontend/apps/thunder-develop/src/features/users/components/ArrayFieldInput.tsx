@@ -17,10 +17,7 @@
  */
 
 import {useState} from 'react';
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
-import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
+import {Box, TextField, Chip, IconButton} from '@wso2/oxygen-ui';
 import {Plus} from 'lucide-react';
 
 /**

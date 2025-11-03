@@ -58,11 +58,12 @@ func (suite *SessionDataStoreTestSuite) TestGetSessionDataStore() {
 func (suite *SessionDataStoreTestSuite) TestAddSession() {
 	sessionData := SessionData{
 		OAuthParameters: model.OAuthParameters{
-			ClientID:     "test-client",
-			RedirectURI:  "https://example.com/callback",
-			ResponseType: "code",
-			Scopes:       "read write",
-			State:        "test-state",
+			ClientID:         "test-client",
+			RedirectURI:      "https://example.com/callback",
+			ResponseType:     "code",
+			StandardScopes:   []string{"openid"},
+			PermissionScopes: []string{"read", "write"},
+			State:            "test-state",
 		},
 		AuthTime: time.Now(),
 	}

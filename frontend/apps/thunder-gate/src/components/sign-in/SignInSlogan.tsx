@@ -16,9 +16,7 @@
  * under the License.
  */
 
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import {Box, Stack, Typography} from '@wso2/oxygen-ui';
 import {Cloud, ShieldCheck, Zap, TerminalSquare} from 'lucide-react';
 import type {JSX} from 'react';
 import {ThemedIcon} from '@thunder/ui';
@@ -41,7 +39,7 @@ const items: {
   {
     icon: <TerminalSquare className="text-muted-foreground" />,
     title: 'Developer-first Experience',
-    description: 'Create apps, configure auth flows, and manage tenants in minutes with powerful SDKs and APIs.',
+    description: 'Configure auth flows and manage organizations with powerful SDKs and APIs.',
   },
   {
     icon: <Zap className="text-muted-foreground" />,
@@ -61,7 +59,7 @@ export default function SignInSlogan(): JSX.Element {
               dark: `${import.meta.env.BASE_URL}/assets/images/logo-inverted.svg`,
             }}
             alt={{light: 'Logo (Light)', dark: 'Logo (Dark)'}}
-            height={38}
+            height={30}
             width="auto"
           />
         </Typography>

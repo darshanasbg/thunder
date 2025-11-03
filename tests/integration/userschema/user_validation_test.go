@@ -282,7 +282,7 @@ func (ts *UserValidationTestSuite) TestUpdateUserWithInvalidSchema() {
 	ts.updateUserAndExpectError(userID, updateUserReq, "USR-1019")
 }
 
-// TestCreateUserWithoutSchema tests user creation without a defined schema (should succeed)
+// TestCreateUserWithoutSchema tests user creation without a defined schema (should fail)
 func (ts *UserValidationTestSuite) TestCreateUserWithoutSchema() {
 	// Create a user with a type that has no schema
 	createUserReq := CreateUserRequest{
@@ -294,8 +294,7 @@ func (ts *UserValidationTestSuite) TestCreateUserWithoutSchema() {
 		}`),
 	}
 
-	userID := ts.createUserAndExpectSuccess(createUserReq)
-	ts.createdUsers = append(ts.createdUsers, userID)
+	ts.createUserAndExpectError(createUserReq, "USR-1021")
 }
 
 // Helper methods

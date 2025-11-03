@@ -94,7 +94,7 @@ paths:
                   value:
                     code: "USR-1011"
                     message: "Invalid pagination parameter"
-                    description: "The limit parameter must be a positive integer"
+                    description: "The limit parameter must be between 1 and 100"
                 invalid-offset:
                   summary: Invalid offset parameter
                   value:
@@ -181,12 +181,31 @@ paths:
                     code: "USR-1005"
                     message: "Organization unit not found"
                     description: "The specified organization unit does not exist"
+                schema-validation-failed:
+                  summary: Schema validation failed
+                  value:
+                    code: "USR-1019"
+                    message: "Schema validation failed"
+                    description: "User attributes do not conform to the required schema"
+                user-schema-not-found:
+                  summary: User schema not found
+                  value:
+                    code: "USR-1021"
+                    message: "User schema not found"
+                    description: "The specified user schema does not exist"
         "409":
           description: Conflict
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              examples:
+                attribute-conflict:
+                  summary: Unique attribute conflict
+                  value:
+                    code: "USR-1014"
+                    message: "Attribute conflict"
+                    description: "A user with the same unique attribute value already exists"
         "500":
           description: Internal server error
 
@@ -305,6 +324,31 @@ paths:
                     code: "USR-1005"
                     message: "Organization unit not found"
                     description: "The specified organization unit does not exist"
+                schema-validation-failed:
+                  summary: Schema validation failed
+                  value:
+                    code: "USR-1019"
+                    message: "Schema validation failed"
+                    description: "User attributes do not conform to the required schema"
+                user-schema-not-found:
+                  summary: User schema not found
+                  value:
+                    code: "USR-1021"
+                    message: "User schema not found"
+                    description: "The specified user schema does not exist"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                attribute-conflict:
+                  summary: Unique attribute conflict
+                  value:
+                    code: "USR-1014"
+                    message: "Attribute conflict"
+                    description: "A user with the same unique attribute value already exists"
         "404":
           description: User not found
           content:
@@ -392,7 +436,7 @@ paths:
                   value:
                     code: "USR-1011"
                     message: "Invalid pagination parameter"
-                    description: "The limit parameter must be a positive integer"
+                    description: "The limit parameter must be between 1 and 100"
                 invalid-offset:
                   summary: Invalid offset parameter
                   value:
@@ -416,7 +460,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
               example:
-                code: "USR-5001"
+                code: "USR-5000"
                 message: "Internal server error"
                 description: "An unexpected error occurred while processing the request"
 
@@ -471,7 +515,7 @@ paths:
                   value:
                     code: "USR-1011"
                     message: "Invalid pagination parameter"
-                    description: "The limit parameter must be a positive integer"
+                    description: "The limit parameter must be between 1 and 100"
                 invalid-offset:
                   summary: Invalid offset parameter
                   value:
@@ -494,13 +538,13 @@ paths:
                 path-not-found:
                   summary: Handle path not found
                   value:
-                    code: "USR-1003"
+                    code: "USR-1005"
                     message: "Organization unit not found"
                     description: "The organization unit with the specified handle path does not exist"
                 invalid-path:
                   summary: Invalid path structure
                   value:
-                    code: "USR-1008"
+                    code: "USR-1009"
                     message: "Invalid handle path"
                     description: "The handle path does not represent a valid organizational hierarchy"
         "500":
@@ -578,24 +622,24 @@ paths:
                     code: "USR-1001"
                     message: "Invalid request format"
                     description: "The request body is malformed, contains invalid data, or required fields are missing/empty"
-                username-conflict:
-                  summary: Username already exists
-                  value:
-                    code: "USR-1014"
-                    message: "Username conflict"
-                    description: "A user with the same username already exists"
-                email-conflict:
-                  summary: Email already exists
-                  value:
-                    code: "USR-1015"
-                    message: "Email conflict"
-                    description: "A user with the same email already exists"
                 invalid-group-id:
                   summary: Invalid group ID
                   value:
                     code: "USR-1007"
                     message: "Invalid group ID"
                     description: "One or more group IDs in the request do not exist"
+                schema-validation-failed:
+                  summary: Schema validation failed
+                  value:
+                    code: "USR-1019"
+                    message: "Schema validation failed"
+                    description: "User attributes do not conform to the required schema"
+                user-schema-not-found:
+                  summary: User schema not found
+                  value:
+                    code: "USR-1021"
+                    message: "User schema not found"
+                    description: "The specified user schema does not exist"
         "404":
           description: Organization unit not found
           content:
@@ -606,13 +650,13 @@ paths:
                 path-not-found:
                   summary: Handle path not found
                   value:
-                    code: "USR-1003"
+                    code: "USR-1005"
                     message: "Organization unit not found"
                     description: "The organization unit with the specified handle path does not exist"
                 invalid-path:
                   summary: Invalid path structure
                   value:
-                    code: "USR-1008"
+                    code: "USR-1009"
                     message: "Invalid handle path"
                     description: "The handle path does not represent a valid organizational hierarchy"
         "409":
@@ -623,11 +667,11 @@ paths:
                 $ref: '#/components/schemas/Error'
               examples:
                 username-conflict:
-                  summary: Username already exists
+                  summary: Unique attribute conflict
                   value:
                     code: "USR-1014"
-                    message: "Username conflict"
-                    description: "A user with the same username already exists"
+                    message: "Attribute conflict"
+                    description: "A user with the same unique attribute value already exists"
                 email-conflict:
                   summary: Email already exists
                   value:
@@ -683,7 +727,7 @@ paths:
                   value:
                     code: "USRS-1005"
                     message: "Invalid pagination parameter"
-                    description: "The limit parameter must be a positive integer"
+                    description: "The limit parameter must be between 1 and 100"
                 invalid-offset:
                   summary: Invalid offset parameter
                   value:
@@ -1027,19 +1071,21 @@ components:
       name: limit
       required: false
       description: |
-        Maximum number of records to return.
+        Maximum number of records to return. Must be between 1 and 100 inclusive.
       schema:
         type: integer
         minimum: 1
+        maximum: 100
         default: 30
     offsetQueryParam:
       in: query
       name: offset
       required: false
       description: |
-        Number of records to skip for pagination.
+        Number of records to skip for pagination. Must be a non-negative integer.
       schema:
         type: integer
+        minimum: 0
         default: 0
     filterParam:
       in: query

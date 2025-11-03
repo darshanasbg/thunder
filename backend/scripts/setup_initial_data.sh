@@ -206,7 +206,7 @@ create_user_schema() {
     "${BASE_URL}/user-schemas" \
     -H "Content-Type: application/json" \
     -d '{
-      "name": "default-user-schema",
+      "name": "person",
       "schema": {
         "sub": {
           "type": "string",
@@ -275,7 +275,7 @@ create_admin_user() {
     "${BASE_URL}/users" \
     -H "Content-Type: application/json" \
     -d "{
-      \"type\": \"default-user-schema\",
+      \"type\": \"person\",
       \"attributes\": {
         \"username\": \"admin\",
         \"password\": \"admin\",

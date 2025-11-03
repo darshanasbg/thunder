@@ -29,3 +29,12 @@ cors:
 
 immutable_resources:
   enabled: false
+
+observability:
+  enabled: false
+  output:
+    type: "console"
+    format: "json"
+  metrics:
+    enabled: true
+  failure_mode: "graceful"

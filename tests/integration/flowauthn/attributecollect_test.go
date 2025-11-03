@@ -49,9 +49,33 @@ var (
 		Parent:      nil,
 	}
 
+	attrCollectUserSchema = testutils.UserSchema{
+		Name: "attr_collect_user",
+		Schema: map[string]interface{}{
+			"username": map[string]interface{}{
+				"type": "string",
+			},
+			"password": map[string]interface{}{
+				"type": "string",
+			},
+			"firstName": map[string]interface{}{
+				"type": "string",
+			},
+			"lastName": map[string]interface{}{
+				"type": "string",
+			},
+			"email": map[string]interface{}{
+				"type": "string",
+			},
+			"mobileNumber": map[string]interface{}{
+				"type": "string",
+			},
+		},
+	}
+
 	// User templates with different attribute configurations
 	testUserNoAttributes = testutils.User{
-		Type: "person",
+		Type: attrCollectUserSchema.Name,
 		Attributes: json.RawMessage(`{
 			"username": "noattrsuser",
 			"password": "testpassword"
@@ -59,7 +83,7 @@ var (
 	}
 
 	testUserPartialAttributes = testutils.User{
-		Type: "person",
+		Type: attrCollectUserSchema.Name,
 		Attributes: json.RawMessage(`{
 			"username": "partialuser",
 			"password": "testpassword",
@@ -69,7 +93,7 @@ var (
 	}
 
 	testUserFullAttributes = testutils.User{
-		Type: "person",
+		Type: attrCollectUserSchema.Name,
 		Attributes: json.RawMessage(`{
 			"username": "fulluser",
 			"password": "testpassword",
@@ -81,7 +105,7 @@ var (
 	}
 
 	testUserNoAttributes2 = testutils.User{
-		Type: "person",
+		Type: attrCollectUserSchema.Name,
 		Attributes: json.RawMessage(`{
 			"username": "noattrsuser2",
 			"password": "testpassword"
@@ -90,8 +114,9 @@ var (
 )
 
 var (
-	attrCollectTestAppID string
-	attrCollectTestOUID  string
+	attrCollectTestAppID    string
+	attrCollectTestOUID     string
+	attrCollectUserSchemaID string
 )
 
 type AttributeCollectTestData struct {
@@ -129,6 +154,12 @@ func (ts *AttributeCollectFlowTestSuite) SetupSuite() {
 		ts.T().Fatalf("Failed to create test application during setup: %v", err)
 	}
 	attrCollectTestAppID = appID
+
+	schemaID, err := testutils.CreateUserType(attrCollectUserSchema)
+	if err != nil {
+		ts.T().Fatalf("Failed to create test user schema during setup: %v", err)
+	}
+	attrCollectUserSchemaID = schemaID
 
 	// Store original app config (this will be the created app config)
 	ts.config.OriginalAppConfig, err = getAppConfig(attrCollectTestAppID)
@@ -225,6 +256,12 @@ func (ts *AttributeCollectFlowTestSuite) TearDownSuite() {
 	if attrCollectTestOUID != "" {
 		if err := testutils.DeleteOrganizationUnit(attrCollectTestOUID); err != nil {
 			ts.T().Logf("Failed to delete test organization unit during teardown: %v", err)
+		}
+	}
+
+	if attrCollectUserSchemaID != "" {
+		if err := testutils.DeleteUserType(attrCollectUserSchemaID); err != nil {
+			ts.T().Logf("Failed to delete test user schema during teardown: %v", err)
 		}
 	}
 

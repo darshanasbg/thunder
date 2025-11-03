@@ -42,12 +42,33 @@ const (
 )
 
 var (
-	testOUID string
+	testOUID       string
+	testUserSchema = testutils.UserSchema{
+		Name: "person",
+		Schema: map[string]interface{}{
+			"username": map[string]interface{}{
+				"type": "string",
+			},
+			"password": map[string]interface{}{
+				"type": "string",
+			},
+			"email": map[string]interface{}{
+				"type": "string",
+			},
+			"firstName": map[string]interface{}{
+				"type": "string",
+			},
+			"lastName": map[string]interface{}{
+				"type": "string",
+			},
+		},
+	}
 )
 
 type AuthzTestSuite struct {
 	suite.Suite
 	applicationID string
+	userSchemaID  string
 	client        *http.Client
 }
 
@@ -62,6 +83,12 @@ func (ts *AuthzTestSuite) SetupSuite() {
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 	}
+
+	schemaID, err := testutils.CreateUserType(testUserSchema)
+	if err != nil {
+		ts.T().Fatalf("Failed to create test user type: %v", err)
+	}
+	ts.userSchemaID = schemaID
 
 	app := map[string]interface{}{
 		"name":                         appName,
@@ -90,6 +117,7 @@ func (ts *AuthzTestSuite) SetupSuite() {
 		},
 	}
 
+	// TODO: Use testutils.CreateApplication
 	jsonData, err := json.Marshal(app)
 	if err != nil {
 		ts.T().Fatalf("Failed to marshal application data: %v", err)
@@ -128,6 +156,7 @@ func (ts *AuthzTestSuite) SetupSuite() {
 		"parent":      nil,
 	}
 
+	// TODO: Use testutils.CreateOrganizationUnit
 	ouJSON, err := json.Marshal(ouData)
 	if err != nil {
 		ts.T().Fatalf("Failed to marshal OU data: %v", err)
@@ -161,29 +190,27 @@ func (ts *AuthzTestSuite) SetupSuite() {
 }
 
 func (ts *AuthzTestSuite) TearDownSuite() {
-	if ts.applicationID == "" {
-		return
-	}
+	if ts.applicationID != "" {
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/applications/%s", testServerURL, ts.applicationID), nil)
+		if err != nil {
+			ts.T().Errorf("Failed to create delete request: %v", err)
+			return
+		}
 
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/applications/%s", testServerURL, ts.applicationID), nil)
-	if err != nil {
-		ts.T().Errorf("Failed to create delete request: %v", err)
-		return
-	}
+		resp, err := ts.client.Do(req)
+		if err != nil {
+			ts.T().Errorf("Failed to delete application: %v", err)
+			return
+		}
+		defer resp.Body.Close()
 
-	resp, err := ts.client.Do(req)
-	if err != nil {
-		ts.T().Errorf("Failed to delete application: %v", err)
-		return
-	}
-	defer resp.Body.Close()
+		if resp.StatusCode != http.StatusNoContent {
+			ts.T().Errorf("Failed to delete application. Status: %d", resp.StatusCode)
+			return
+		}
 
-	if resp.StatusCode != http.StatusNoContent {
-		ts.T().Errorf("Failed to delete application. Status: %d", resp.StatusCode)
-		return
+		ts.T().Logf("Successfully deleted test application with ID: %s", ts.applicationID)
 	}
-
-	ts.T().Logf("Successfully deleted test application with ID: %s", ts.applicationID)
 
 	// Delete test organization unit
 	if testOUID != "" {
@@ -204,6 +231,13 @@ func (ts *AuthzTestSuite) TearDownSuite() {
 			ts.T().Errorf("Failed to delete organization unit. Status: %d", ouResp.StatusCode)
 		} else {
 			ts.T().Logf("Successfully deleted test organization unit with ID: %s", testOUID)
+		}
+	}
+
+	if ts.userSchemaID != "" {
+		err := testutils.DeleteUserType(ts.userSchemaID)
+		if err != nil {
+			ts.T().Errorf("Failed to delete test user type: %v", err)
 		}
 	}
 

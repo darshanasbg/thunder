@@ -31,16 +31,30 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const (
-	testServerURL = "https://localhost:8095"
-)
-
 var (
 	testOU = testutils.OrganizationUnit{
 		Handle:      "test-group-ou",
 		Name:        "Test Organization Unit for Groups",
 		Description: "Organization unit created for group API testing",
 		Parent:      nil,
+	}
+
+	testUserSchema = testutils.UserSchema{
+		Name: "person",
+		Schema: map[string]interface{}{
+			"email": map[string]interface{}{
+				"type": "string",
+			},
+			"firstName": map[string]interface{}{
+				"type": "string",
+			},
+			"lastName": map[string]interface{}{
+				"type": "string",
+			},
+			"password": map[string]interface{}{
+				"type": "string",
+			},
+		},
 	}
 
 	testUser = testutils.User{
@@ -64,6 +78,7 @@ var (
 	createdGroupID string
 	testOUID       string
 	testUserID     string
+	userSchemaID   string
 )
 
 type GroupAPITestSuite struct {
@@ -77,6 +92,13 @@ func (suite *GroupAPITestSuite) SetupSuite() {
 		suite.T().Fatalf("Failed to create test organization unit during setup: %v", err)
 	}
 	testOUID = ouID
+
+	// Create test user type
+	schemaID, err := testutils.CreateUserType(testUserSchema)
+	if err != nil {
+		suite.T().Fatalf("Failed to create test user type during setup: %v", err)
+	}
+	userSchemaID = schemaID
 
 	// Create test user with the created OU
 	testUser := testUser
@@ -118,6 +140,14 @@ func (suite *GroupAPITestSuite) TearDownSuite() {
 		err := testutils.DeleteUser(testUserID)
 		if err != nil {
 			suite.T().Logf("Failed to delete test user during teardown: %v", err)
+		}
+	}
+
+	// Delete test user type
+	if userSchemaID != "" {
+		err := testutils.DeleteUserType(userSchemaID)
+		if err != nil {
+			suite.T().Logf("Failed to delete user type during teardown: %v", err)
 		}
 	}
 

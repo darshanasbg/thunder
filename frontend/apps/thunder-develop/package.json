@@ -43,6 +43,7 @@
     "@mui/x-tree-view": "catalog:",
     "@thunder/commons-contexts": "workspace:^",
     "@thunder/ui": "workspace:^",
+    "@wso2/oxygen-ui": "workspace:^",
     "clsx": "catalog:",
     "dayjs": "catalog:",
     "lucide-react": "catalog:",

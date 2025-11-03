@@ -38,11 +38,36 @@ const (
 	mockGooglePort   = 8090
 )
 
+var googleUserSchema = testutils.UserSchema{
+	Name: "google_user",
+	Schema: map[string]interface{}{
+		"username": map[string]interface{}{
+			"type": "string",
+		},
+		"password": map[string]interface{}{
+			"type": "string",
+		},
+		"sub": map[string]interface{}{
+			"type": "string",
+		},
+		"email": map[string]interface{}{
+			"type": "string",
+		},
+		"givenName": map[string]interface{}{
+			"type": "string",
+		},
+		"familyName": map[string]interface{}{
+			"type": "string",
+		},
+	},
+}
+
 type GoogleAuthTestSuite struct {
 	suite.Suite
 	mockGoogleServer *testutils.MockGoogleOIDCServer
 	idpID            string
 	userID           string
+	userSchemaID     string
 }
 
 func TestGoogleAuthTestSuite(t *testing.T) {
@@ -69,6 +94,10 @@ func (suite *GoogleAuthTestSuite) SetupSuite() {
 	err = suite.mockGoogleServer.Start()
 	suite.Require().NoError(err, "Failed to start mock Google server")
 
+	schemaID, err := testutils.CreateUserType(googleUserSchema)
+	suite.Require().NoError(err, "Failed to create Google user schema")
+	suite.userSchemaID = schemaID
+
 	userAttributes := map[string]interface{}{
 		"username":   "googleuser",
 		"password":   "Test@1234",
@@ -82,7 +111,7 @@ func (suite *GoogleAuthTestSuite) SetupSuite() {
 	suite.Require().NoError(err)
 
 	user := testutils.User{
-		Type:             "person",
+		Type:             googleUserSchema.Name,
 		OrganizationUnit: "root",
 		Attributes:       json.RawMessage(attributesJSON),
 	}
@@ -147,6 +176,10 @@ func (suite *GoogleAuthTestSuite) SetupSuite() {
 func (suite *GoogleAuthTestSuite) TearDownSuite() {
 	if suite.userID != "" {
 		_ = testutils.DeleteUser(suite.userID)
+	}
+
+	if suite.userSchemaID != "" {
+		_ = testutils.DeleteUserType(suite.userSchemaID)
 	}
 
 	if suite.idpID != "" {

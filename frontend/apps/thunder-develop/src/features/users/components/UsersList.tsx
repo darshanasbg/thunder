@@ -18,23 +18,25 @@
 
 import {useEffect, useMemo, useState, useCallback} from 'react';
 import {useNavigate} from 'react-router';
-import Box from '@mui/material/Box';
-import Avatar from '@mui/material/Avatar';
-import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
+import {
+  Box,
+  Avatar,
+  Chip,
+  IconButton,
+  Typography,
+  Snackbar,
+  Alert,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+} from '@wso2/oxygen-ui';
 import {DataGrid, type GridColDef, type GridRenderCellParams} from '@mui/x-data-grid';
 import {EllipsisVertical, Trash2, Eye} from 'lucide-react';
 import useGetUsers from '../api/useGetUsers';

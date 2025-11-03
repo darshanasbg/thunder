@@ -36,11 +36,36 @@ const (
 	mockOIDCPort   = 8093
 )
 
+var oidcUserSchema = testutils.UserSchema{
+	Name: "oidc_user",
+	Schema: map[string]interface{}{
+		"username": map[string]interface{}{
+			"type": "string",
+		},
+		"password": map[string]interface{}{
+			"type": "string",
+		},
+		"sub": map[string]interface{}{
+			"type": "string",
+		},
+		"email": map[string]interface{}{
+			"type": "string",
+		},
+		"givenName": map[string]interface{}{
+			"type": "string",
+		},
+		"familyName": map[string]interface{}{
+			"type": "string",
+		},
+	},
+}
+
 type OIDCAuthTestSuite struct {
 	suite.Suite
 	mockOIDCServer *testutils.MockOIDCServer
 	idpID          string
 	userID         string
+	userSchemaID   string
 }
 
 func TestOIDCAuthTestSuite(t *testing.T) {
@@ -70,6 +95,10 @@ func (suite *OIDCAuthTestSuite) SetupSuite() {
 	err = suite.mockOIDCServer.Start()
 	suite.Require().NoError(err, "Failed to start mock OIDC server")
 
+	schemaID, err := testutils.CreateUserType(oidcUserSchema)
+	suite.Require().NoError(err, "Failed to create OIDC user schema")
+	suite.userSchemaID = schemaID
+
 	userAttributes := map[string]interface{}{
 		"username":   "oidcuser",
 		"password":   "Test@1234",
@@ -83,7 +112,7 @@ func (suite *OIDCAuthTestSuite) SetupSuite() {
 	suite.Require().NoError(err)
 
 	user := testutils.User{
-		Type:             "person",
+		Type:             oidcUserSchema.Name,
 		OrganizationUnit: "root",
 		Attributes:       json.RawMessage(attributesJSON),
 	}
@@ -148,6 +177,10 @@ func (suite *OIDCAuthTestSuite) SetupSuite() {
 func (suite *OIDCAuthTestSuite) TearDownSuite() {
 	if suite.userID != "" {
 		_ = testutils.DeleteUser(suite.userID)
+	}
+
+	if suite.userSchemaID != "" {
+		_ = testutils.DeleteUserType(suite.userSchemaID)
 	}
 
 	if suite.idpID != "" {

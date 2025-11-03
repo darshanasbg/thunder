@@ -160,13 +160,16 @@ func (ah *authorizeHandler) handleInitialAuthorizationRequest(msg *OAuthMessage,
 		}
 	}
 
+	oidcScopes, nonOidcScopes := oauth2utils.SeparateOIDCAndNonOIDCScopes(scope)
+
 	// Construct session data.
 	oauthParams := oauth2model.OAuthParameters{
 		State:               state,
 		ClientID:            clientID,
 		RedirectURI:         redirectURI,
 		ResponseType:        responseType,
-		Scopes:              scope,
+		StandardScopes:      oidcScopes,
+		PermissionScopes:    nonOidcScopes,
 		CodeChallenge:       codeChallenge,
 		CodeChallengeMethod: codeChallengeMethod,
 		Resource:            resource,
@@ -182,6 +185,9 @@ func (ah *authorizeHandler) handleInitialAuthorizationRequest(msg *OAuthMessage,
 	flowInitCtx := &model.FlowInitContext{
 		ApplicationID: app.AppID,
 		FlowType:      string(constants.FlowTypeAuthentication),
+		RuntimeData: map[string]string{
+			"requested_permissions": utils.StringifyStringArray(nonOidcScopes, " "),
+		},
 	}
 
 	flowID, flowErr := ah.flowExecService.InitiateFlow(flowInitCtx)
@@ -245,7 +251,7 @@ func (ah *authorizeHandler) handleAuthorizationResponseFromEngine(msg *OAuthMess
 	}
 
 	// Decode user attributes from the assertion.
-	userID, _, err := decodeAttributesFromAssertion(assertion)
+	userID, attributes, err := decodeAttributesFromAssertion(assertion)
 	if err != nil {
 		logger.Error("Failed to decode user attributes from assertion", log.Error(err))
 		ah.writeAuthZResponseToErrorPage(w, oauth2const.ErrorInvalidRequest, "Something went wrong", sessionData)
@@ -258,8 +264,9 @@ func (ah *authorizeHandler) handleAuthorizationResponseFromEngine(msg *OAuthMess
 		return
 	}
 
-	// TODO: Do user authorization.
-	//  Should validate for the scopes as well.
+	authorizedScopes := attributes["authorized_permissions"]
+	// Overwrite the non oidc scopes in session data with the authorized scopes from the assertion.
+	sessionData.OAuthParameters.PermissionScopes = utils.ParseStringArray(authorizedScopes, " ")
 
 	// Generate the authorization code.
 	authzCode, err := createAuthorizationCode(sessionData, userID)
@@ -499,7 +506,9 @@ func createAuthorizationCode(sessionData *SessionData, authUserID string) (
 		return AuthorizationCode{}, errors.New("authentication time is not set")
 	}
 
-	scope := sessionData.OAuthParameters.Scopes
+	StandardScopes := sessionData.OAuthParameters.StandardScopes
+	permissionScopes := sessionData.OAuthParameters.PermissionScopes
+	allScopes := append(append([]string{}, StandardScopes...), permissionScopes...)
 	resource := sessionData.OAuthParameters.Resource
 
 	// TODO: Add expiry time logic.
@@ -513,7 +522,7 @@ func createAuthorizationCode(sessionData *SessionData, authUserID string) (
 		AuthorizedUserID:    authUserID,
 		TimeCreated:         authTime,
 		ExpiryTime:          expiryTime,
-		Scopes:              scope,
+		Scopes:              utils.StringifyStringArray(allScopes, " "),
 		State:               AuthCodeStateActive,
 		CodeChallenge:       sessionData.OAuthParameters.CodeChallenge,
 		CodeChallengeMethod: sessionData.OAuthParameters.CodeChallengeMethod,
@@ -572,6 +581,12 @@ func decodeAttributesFromAssertion(assertion string) (string, map[string]string,
 				userAttributes["lastName"] = strValue
 			} else {
 				return "", nil, errors.New("JWT 'lastName' claim is not a string")
+			}
+		case "authorized_permissions":
+			if strValue, ok := value.(string); ok {
+				userAttributes["authorized_permissions"] = strValue
+			} else {
+				return "", nil, errors.New("JWT 'authorized_permissions' claim is not a string")
 			}
 		}
 	}

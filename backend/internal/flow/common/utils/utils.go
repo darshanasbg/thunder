@@ -24,6 +24,7 @@ import (
 
 	"github.com/asgardeo/thunder/internal/executor/attributecollect"
 	"github.com/asgardeo/thunder/internal/executor/authassert"
+	authzexec "github.com/asgardeo/thunder/internal/executor/authz"
 	"github.com/asgardeo/thunder/internal/executor/basicauth"
 	"github.com/asgardeo/thunder/internal/executor/githubauth"
 	"github.com/asgardeo/thunder/internal/executor/googleauth"
@@ -202,6 +203,11 @@ func getExecutorConfigByName(execDef jsonmodel.ExecutorDefinition) (*model.Execu
 		executor = model.ExecutorConfig{
 			Name: "AuthAssertExecutor",
 		}
+	case "AuthorizationExecutor":
+		executor = model.ExecutorConfig{
+			Name:       "AuthorizationExecutor",
+			Properties: execDef.Properties,
+		}
 	default:
 		return nil, fmt.Errorf("executor with name %s not found", execDef.Name)
 	}
@@ -273,6 +279,9 @@ func GetExecutorByName(execConfig *model.ExecutorConfig) (model.ExecutorInterfac
 		executor = ouexec.NewOUExecutor("ou-executor", "OUExecutor", execConfig.Properties)
 	case "AuthAssertExecutor":
 		executor = authassert.NewAuthAssertExecutor("auth-assert-executor", "AuthAssertExecutor",
+			execConfig.Properties)
+	case "AuthorizationExecutor":
+		executor = authzexec.NewAuthorizationExecutor("authorization-executor", "AuthorizationExecutor",
 			execConfig.Properties)
 	default:
 		return nil, fmt.Errorf("executor with name %s not found", execConfig.Name)

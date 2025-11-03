@@ -49,6 +49,30 @@ var (
 		Description: "Organization unit for OU registration flow testing",
 		Parent:      nil,
 	}
+
+	dynamicUserSchema = testutils.UserSchema{
+		Name: "dynamic-user-type",
+		Schema: map[string]interface{}{
+			"username": map[string]interface{}{
+				"type": "string",
+			},
+			"password": map[string]interface{}{
+				"type": "string",
+			},
+			"email": map[string]interface{}{
+				"type": "string",
+			},
+			"firstName": map[string]interface{}{
+				"type": "string",
+			},
+			"lastName": map[string]interface{}{
+				"type": "string",
+			},
+			"mobileNumber": map[string]interface{}{
+				"type": "string",
+			},
+		},
+	}
 )
 
 type OURegistrationFlowTestSuite struct {
@@ -60,6 +84,7 @@ type OURegistrationFlowTestSuite struct {
 	basicFlowTestOUID  string
 	smsFlowTestAppID   string
 	smsFlowTestOUID    string
+	userSchemaID       string
 }
 
 func TestOURegistrationFlowTestSuite(t *testing.T) {
@@ -69,6 +94,12 @@ func TestOURegistrationFlowTestSuite(t *testing.T) {
 func (ts *OURegistrationFlowTestSuite) SetupSuite() {
 	ts.config = &TestSuiteConfig{}
 	ts.createdOUs = []string{}
+
+	schemaID, err := testutils.CreateUserType(dynamicUserSchema)
+	if err != nil {
+		ts.T().Fatalf("Failed to create dynamic user schema during setup: %v", err)
+	}
+	ts.userSchemaID = schemaID
 
 	ouID, err := testutils.CreateOrganizationUnit(ouRegTestOU)
 	if err != nil {
@@ -155,6 +186,12 @@ func (ts *OURegistrationFlowTestSuite) TearDownSuite() {
 			ts.T().Logf("Failed to delete SMS test organization unit during teardown: %v", err)
 		}
 	}
+
+	if ts.userSchemaID != "" {
+		if err := testutils.DeleteUserType(ts.userSchemaID); err != nil {
+			ts.T().Logf("Failed to delete dynamic user schema during teardown: %v", err)
+		}
+	}
 }
 
 func (ts *OURegistrationFlowTestSuite) TestBasicRegistrationFlowWithOU() {
@@ -199,7 +236,7 @@ func (ts *OURegistrationFlowTestSuite) TestBasicRegistrationFlowWithOU() {
 
 			jwtClaims, err := testutils.DecodeJWT(flowStep.Assertion)
 			ts.Require().NoError(err)
-			ts.Require().Equal("dynamic-user-type", jwtClaims.UserType)
+			ts.Require().Equal(dynamicUserSchema.Name, jwtClaims.UserType)
 			ts.Require().NotEmpty(jwtClaims.OuID)
 
 			user, err := testutils.FindUserByAttribute("username", username)
@@ -348,7 +385,7 @@ func (ts *OURegistrationFlowTestSuite) TestSMSRegistrationFlowWithOUCreation() {
 
 			jwtClaims, err := testutils.DecodeJWT(flowStep.Assertion)
 			ts.Require().NoError(err)
-			ts.Require().Equal("dynamic-user-type", jwtClaims.UserType)
+			ts.Require().Equal(dynamicUserSchema.Name, jwtClaims.UserType)
 			ts.Require().NotEmpty(jwtClaims.OuID)
 
 			user, err := testutils.FindUserByAttribute("mobileNumber", mobileNumber)

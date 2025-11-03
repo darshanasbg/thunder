@@ -19,19 +19,21 @@
 import {useNavigate, useParams} from 'react-router';
 import {useForm} from 'react-hook-form';
 import {useState, useEffect, useMemo} from 'react';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
-import Divider from '@mui/material/Divider';
-import CircularProgress from '@mui/material/CircularProgress';
-import Alert from '@mui/material/Alert';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogActions from '@mui/material/DialogActions';
+import {
+  Box,
+  Stack,
+  Typography,
+  Button,
+  Paper,
+  Divider,
+  CircularProgress,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from '@wso2/oxygen-ui';
 import {ArrowLeft, Edit, Save, X, Trash2} from 'lucide-react';
 import useGetUser from '../api/useGetUser';
 import useGetUserSchemas from '../api/useGetUserSchemas';

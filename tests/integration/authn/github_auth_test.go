@@ -37,11 +37,36 @@ const (
 	mockGithubPort   = 8091
 )
 
+var githubUserSchema = testutils.UserSchema{
+	Name: "github_user",
+	Schema: map[string]interface{}{
+		"username": map[string]interface{}{
+			"type": "string",
+		},
+		"password": map[string]interface{}{
+			"type": "string",
+		},
+		"sub": map[string]interface{}{
+			"type": "string",
+		},
+		"email": map[string]interface{}{
+			"type": "string",
+		},
+		"givenName": map[string]interface{}{
+			"type": "string",
+		},
+		"familyName": map[string]interface{}{
+			"type": "string",
+		},
+	},
+}
+
 type GithubAuthTestSuite struct {
 	suite.Suite
 	mockGithubServer *testutils.MockGithubOAuthServer
 	idpID            string
 	userID           string
+	userSchemaID     string
 }
 
 func TestGithubAuthTestSuite(t *testing.T) {
@@ -74,6 +99,10 @@ func (suite *GithubAuthTestSuite) SetupSuite() {
 	err := suite.mockGithubServer.Start()
 	suite.Require().NoError(err, "Failed to start mock GitHub server")
 
+	schemaID, err := testutils.CreateUserType(githubUserSchema)
+	suite.Require().NoError(err, "Failed to create GitHub user schema")
+	suite.userSchemaID = schemaID
+
 	userAttributes := map[string]interface{}{
 		"username":   "githubuser",
 		"password":   "Test@1234",
@@ -87,7 +116,7 @@ func (suite *GithubAuthTestSuite) SetupSuite() {
 	suite.Require().NoError(err)
 
 	user := testutils.User{
-		Type:             "person",
+		Type:             githubUserSchema.Name,
 		OrganizationUnit: "root",
 		Attributes:       json.RawMessage(attributesJSON),
 	}
@@ -147,6 +176,10 @@ func (suite *GithubAuthTestSuite) SetupSuite() {
 func (suite *GithubAuthTestSuite) TearDownSuite() {
 	if suite.userID != "" {
 		_ = testutils.DeleteUser(suite.userID)
+	}
+
+	if suite.userSchemaID != "" {
+		_ = testutils.DeleteUserType(suite.userSchemaID)
 	}
 
 	if suite.idpID != "" {

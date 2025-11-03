@@ -9,6 +9,16 @@
                 "name": "BasicAuthExecutor"
             },
             "next": [
+                "authorization_check"
+            ]
+        },
+        {
+            "id": "authorization_check",
+            "type": "TASK_EXECUTION",
+            "executor": {
+                "name": "AuthorizationExecutor"
+            },
+            "next": [
                 "authenticated"
             ]
         },

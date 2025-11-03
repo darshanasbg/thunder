@@ -16,9 +16,7 @@
  * under the License.
  */
 
-import FormControl from '@mui/material/FormControl';
-import InputAdornment from '@mui/material/InputAdornment';
-import OutlinedInput from '@mui/material/OutlinedInput';
+import {FormControl, InputAdornment, OutlinedInput} from '@wso2/oxygen-ui';
 import {SearchIcon} from 'lucide-react';
 import type {JSX} from 'react';
 

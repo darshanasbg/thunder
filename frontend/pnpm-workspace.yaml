@@ -1,6 +1,8 @@
 packages:
   - apps/*
   - packages/*
+  - '!packages/oxygen-ui'
+  - packages/oxygen-ui/packages/oxygen-ui
 
 catalog:
   '@asgardeo/react': 0.5.33

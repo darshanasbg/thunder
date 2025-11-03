@@ -36,10 +36,79 @@ const (
 	testOrgUnitID           = "root"
 )
 
+var credentialUserSchemas = map[string]testutils.UserSchema{
+	"username_password": {
+		Name: "username_password",
+		Schema: map[string]interface{}{
+			"username": map[string]interface{}{
+				"type": "string",
+			},
+			"password": map[string]interface{}{
+				"type": "string",
+			},
+			"email": map[string]interface{}{
+				"type": "string",
+			},
+		},
+	},
+	"email_password": {
+		Name: "email_password",
+		Schema: map[string]interface{}{
+			"email": map[string]interface{}{
+				"type": "string",
+			},
+			"password": map[string]interface{}{
+				"type": "string",
+			},
+			"username": map[string]interface{}{
+				"type": "string",
+			},
+		},
+	},
+	"mobile_password": {
+		Name: "mobile_password",
+		Schema: map[string]interface{}{
+			"mobileNumber": map[string]interface{}{
+				"type": "string",
+			},
+			"password": map[string]interface{}{
+				"type": "string",
+			},
+			"username": map[string]interface{}{
+				"type": "string",
+			},
+		},
+	},
+	"multiple_attributes": {
+		Name: "multiple_attributes",
+		Schema: map[string]interface{}{
+			"username": map[string]interface{}{
+				"type": "string",
+			},
+			"email": map[string]interface{}{
+				"type": "string",
+			},
+			"mobileNumber": map[string]interface{}{
+				"type": "string",
+			},
+			"password": map[string]interface{}{
+				"type": "string",
+			},
+			"firstName": map[string]interface{}{
+				"type": "string",
+			},
+			"lastName": map[string]interface{}{
+				"type": "string",
+			},
+		},
+	},
+}
+
 type CredentialsAuthTestSuite struct {
 	suite.Suite
-	client *http.Client
-	users  map[string]string // map of test name to user ID
+	client        *http.Client
+	users         map[string]string // map of test name to user ID
+	userSchemaIDs map[string]string
 }
 
 func TestCredentialsAuthTestSuite(t *testing.T) {
@@ -53,14 +122,23 @@ func (suite *CredentialsAuthTestSuite) SetupSuite() {
 		},
 	}
 	suite.users = make(map[string]string)
+	suite.userSchemaIDs = make(map[string]string)
+
+	for userType, schema := range credentialUserSchemas {
+		schemaID, err := testutils.CreateUserType(schema)
+		if err != nil {
+			suite.T().Fatalf("Failed to create user schema %s during setup: %v", userType, err)
+		}
+		suite.userSchemaIDs[userType] = schemaID
+	}
 
 	// Create test users with different attribute types
 	testUsers := []struct {
-		name       string
+		userType   string
 		attributes map[string]interface{}
 	}{
 		{
-			name: "username_password",
+			userType: "username_password",
 			attributes: map[string]interface{}{
 				"username": "credtest_user1",
 				"password": "TestPassword123!",
@@ -68,7 +146,7 @@ func (suite *CredentialsAuthTestSuite) SetupSuite() {
 			},
 		},
 		{
-			name: "email_password",
+			userType: "email_password",
 			attributes: map[string]interface{}{
 				"email":    "credtest2@example.com",
 				"password": "TestPassword456!",
@@ -76,7 +154,7 @@ func (suite *CredentialsAuthTestSuite) SetupSuite() {
 			},
 		},
 		{
-			name: "mobile_password",
+			userType: "mobile_password",
 			attributes: map[string]interface{}{
 				"mobileNumber": "+1234567891",
 				"password":     "TestPassword789!",
@@ -84,7 +162,7 @@ func (suite *CredentialsAuthTestSuite) SetupSuite() {
 			},
 		},
 		{
-			name: "multiple_attributes",
+			userType: "multiple_attributes",
 			attributes: map[string]interface{}{
 				"username":     "credtest_user4",
 				"email":        "credtest4@example.com",
@@ -98,24 +176,36 @@ func (suite *CredentialsAuthTestSuite) SetupSuite() {
 
 	for _, tu := range testUsers {
 		attributesJSON, err := json.Marshal(tu.attributes)
-		suite.Require().NoError(err, "Failed to marshal attributes for %s", tu.name)
+		suite.Require().NoError(err, "Failed to marshal attributes for %s", tu.userType)
 
 		user := testutils.User{
-			Type:             "person",
+			Type:             tu.userType,
 			OrganizationUnit: testOrgUnitID,
 			Attributes:       json.RawMessage(attributesJSON),
 		}
 
 		userID, err := testutils.CreateUser(user)
-		suite.Require().NoError(err, "Failed to create test user for %s", tu.name)
-		suite.users[tu.name] = userID
+		suite.Require().NoError(err, "Failed to create test user for %s", tu.userType)
+		suite.users[tu.userType] = userID
 	}
 }
 
 func (suite *CredentialsAuthTestSuite) TearDownSuite() {
 	for _, userID := range suite.users {
 		if userID != "" {
-			_ = testutils.DeleteUser(userID)
+			err := testutils.DeleteUser(userID)
+			if err != nil {
+				suite.T().Errorf("Failed to delete user %s during teardown: %v", userID, err)
+			}
+		}
+	}
+
+	for userType, schemaID := range suite.userSchemaIDs {
+		if schemaID != "" {
+			err := testutils.DeleteUserType(schemaID)
+			if err != nil {
+				suite.T().Errorf("Failed to delete user schema %s during teardown: %v", userType, err)
+			}
 		}
 	}
 }
@@ -132,7 +222,7 @@ func (suite *CredentialsAuthTestSuite) TestAuthenticateWithUsernamePassword() {
 	suite.Equal(http.StatusOK, statusCode, "Expected status 200 for successful authentication")
 
 	suite.NotEmpty(response.ID, "Response should contain user ID")
-	suite.Equal("person", response.Type, "Response should contain correct user type")
+	suite.Equal("username_password", response.Type, "Response should contain correct user type")
 	suite.Equal(suite.users["username_password"], response.ID, "Response should contain the correct user ID")
 }
 
@@ -148,7 +238,7 @@ func (suite *CredentialsAuthTestSuite) TestAuthenticateWithEmailPassword() {
 	suite.Equal(http.StatusOK, statusCode, "Expected status 200 for successful authentication")
 
 	suite.NotEmpty(response.ID, "Response should contain user ID")
-	suite.Equal("person", response.Type, "Response should contain correct user type")
+	suite.Equal("email_password", response.Type, "Response should contain correct user type")
 	suite.Equal(suite.users["email_password"], response.ID, "Response should contain the correct user ID")
 }
 
@@ -164,7 +254,7 @@ func (suite *CredentialsAuthTestSuite) TestAuthenticateWithMobilePassword() {
 	suite.Equal(http.StatusOK, statusCode, "Expected status 200 for successful authentication")
 
 	suite.NotEmpty(response.ID, "Response should contain user ID")
-	suite.Equal("person", response.Type, "Response should contain correct user type")
+	suite.Equal("mobile_password", response.Type, "Response should contain correct user type")
 	suite.Equal(testOrgUnitID, response.OrganizationUnit, "Response should contain correct organization unit")
 	suite.Equal(suite.users["mobile_password"], response.ID, "Response should contain the correct user ID")
 }
@@ -205,7 +295,7 @@ func (suite *CredentialsAuthTestSuite) TestAuthenticateWithMultipleAttributes() 
 			suite.Equal(http.StatusOK, statusCode, "Expected status 200 for successful authentication")
 
 			suite.NotEmpty(response.ID, "Response should contain user ID")
-			suite.Equal("person", response.Type, "Response should contain correct user type")
+			suite.Equal("multiple_attributes", response.Type, "Response should contain correct user type")
 			suite.Equal(testOrgUnitID, response.OrganizationUnit, "Response should contain correct organization unit")
 			suite.Equal(suite.users["multiple_attributes"], response.ID, "Response should contain the correct user ID")
 			suite.NotEmpty(response.Assertion, "Response should contain assertion token by default")
@@ -491,7 +581,7 @@ func (suite *CredentialsAuthTestSuite) TestAuthenticateWithSkipAssertionFalse() 
 	suite.Equal(http.StatusOK, statusCode, "Expected status 200 for successful authentication")
 
 	suite.NotEmpty(response.ID, "Response should contain user ID")
-	suite.Equal("person", response.Type, "Response should contain correct user type")
+	suite.Equal("username_password", response.Type, "Response should contain correct user type")
 	suite.Equal(testOrgUnitID, response.OrganizationUnit, "Response should contain correct organization unit")
 	suite.Equal(suite.users["username_password"], response.ID, "Response should contain the correct user ID")
 	suite.NotEmpty(response.Assertion, "Response should contain assertion token when skip_assertion is false")
@@ -510,7 +600,7 @@ func (suite *CredentialsAuthTestSuite) TestAuthenticateWithSkipAssertionTrue() {
 	suite.Equal(http.StatusOK, statusCode, "Expected status 200 for successful authentication")
 
 	suite.NotEmpty(response.ID, "Response should contain user ID")
-	suite.Equal("person", response.Type, "Response should contain correct user type")
+	suite.Equal("username_password", response.Type, "Response should contain correct user type")
 	suite.Equal(testOrgUnitID, response.OrganizationUnit, "Response should contain correct organization unit")
 	suite.Equal(suite.users["username_password"], response.ID, "Response should contain the correct user ID")
 	suite.Empty(response.Assertion, "Response should not contain assertion token when skip_assertion is true")

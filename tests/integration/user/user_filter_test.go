@@ -31,6 +31,55 @@ import (
 
 var (
 	// Test users specifically for filtering tests
+	filterTestUserSchemas = []testutils.UserSchema{
+		{
+			Name: "employee",
+			Schema: map[string]interface{}{
+				"username": map[string]interface{}{"type": "string"},
+				"email":    map[string]interface{}{"type": "string"},
+				"age":      map[string]interface{}{"type": "number"},
+				"department": map[string]interface{}{
+					"type": "string",
+				},
+				"isActive": map[string]interface{}{"type": "boolean"},
+				"address": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"city": map[string]interface{}{"type": "string"},
+						"zip":  map[string]interface{}{"type": "string"},
+					},
+				},
+				"contactPreferences": map[string]interface{}{
+					"type":  "array",
+					"items": map[string]interface{}{"type": "string"},
+				},
+			},
+		},
+		{
+			Name: "customer",
+			Schema: map[string]interface{}{
+				"username": map[string]interface{}{"type": "string"},
+				"email":    map[string]interface{}{"type": "string"},
+				"age":      map[string]interface{}{"type": "number"},
+				"department": map[string]interface{}{
+					"type": "string",
+				},
+				"isActive": map[string]interface{}{"type": "boolean"},
+				"address": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"city": map[string]interface{}{"type": "string"},
+						"zip":  map[string]interface{}{"type": "string"},
+					},
+				},
+				"contactPreferences": map[string]interface{}{
+					"type":  "array",
+					"items": map[string]interface{}{"type": "string"},
+				},
+			},
+		},
+	}
+
 	filterTestUsers = []testutils.User{
 		{
 			Type:       "employee",
@@ -59,8 +108,9 @@ var (
 )
 
 var (
-	filterTestOUID    string
-	filterTestUserIDs []string
+	filterTestOUID      string
+	filterTestUserIDs   []string
+	filterTestSchemaIDs []string
 )
 
 type UserFilterTestSuite struct {
@@ -79,6 +129,15 @@ func (ts *UserFilterTestSuite) SetupSuite() {
 		ts.T().Fatalf("Failed to create organization unit during filter test setup: %v", err)
 	}
 	filterTestOUID = ouID
+
+	filterTestSchemaIDs = make([]string, 0, len(filterTestUserSchemas))
+	for _, schema := range filterTestUserSchemas {
+		schemaID, err := testutils.CreateUserType(schema)
+		if err != nil {
+			ts.T().Fatalf("Failed to create user schema during filter test setup: %v", err)
+		}
+		filterTestSchemaIDs = append(filterTestSchemaIDs, schemaID)
+	}
 
 	// Create test users for filtering
 	filterTestUserIDs = make([]string, 0, len(filterTestUsers))
@@ -107,6 +166,15 @@ func (ts *UserFilterTestSuite) TearDownSuite() {
 		err := deleteOrganizationUnit(filterTestOUID)
 		if err != nil {
 			ts.T().Logf("Failed to delete filter test organization unit during teardown: %v", err)
+		}
+	}
+
+	for _, schemaID := range filterTestSchemaIDs {
+		if schemaID == "" {
+			continue
+		}
+		if err := testutils.DeleteUserType(schemaID); err != nil {
+			ts.T().Logf("Failed to delete filter test user schema during teardown: %v", err)
 		}
 	}
 }

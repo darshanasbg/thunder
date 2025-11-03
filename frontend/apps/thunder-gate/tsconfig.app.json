@@ -26,7 +26,8 @@
       "@/contexts/*": ["./src/contexts/*"],
       "@/lib/*": ["./src/lib/*"],
       "@/hooks/*": ["./src/hooks/*"],
-      "@/types/*": ["./src/types/*"]
+      "@/types/*": ["./src/types/*"],
+      "@wso2/oxygen-ui/*": ["../../node_modules/@wso2/oxygen-ui/dist/*"],
     },
 
     /* Linting */

@@ -51,6 +51,13 @@ packages:
       dir: internal/authn
       structname: '{{.InterfaceName}}Mock'
       pkgname: authn
+
+  github.com/asgardeo/thunder/internal/role:
+    config:
+      all: true
+      dir: internal/role
+      structname: '{{.InterfaceName}}Mock'
+      pkgname: role
       filename: "{{.InterfaceName}}_mock_test.go"
 
   github.com/asgardeo/thunder/internal/flow/flowexec:
@@ -59,4 +66,20 @@ packages:
       dir: internal/flow/flowexec
       structname: '{{.InterfaceName}}Mock'
       pkgname: flowexec
+      filename: "{{.InterfaceName}}_mock_test.go"
+
+  github.com/asgardeo/thunder/internal/user:
+    config:
+      all: true
+      dir: internal/user
+      structname: '{{.InterfaceName}}Mock'
+      pkgname: user
+      filename: "{{.InterfaceName}}_mock_test.go"
+
+  github.com/asgardeo/thunder/internal/userschema:
+    config:
+      all: true
+      dir: internal/userschema
+      structname: '{{.InterfaceName}}Mock'
+      pkgname: userschema
       filename: "{{.InterfaceName}}_mock_test.go"

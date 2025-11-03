@@ -18,7 +18,7 @@
 
 import {defineConfig} from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import path from 'path';
+import {resolve} from 'path';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5191;
@@ -42,14 +42,20 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@/components': path.resolve(__dirname, './src/components'),
-      '@/layouts': path.resolve(__dirname, './src/layouts'),
-      '@/theme': path.resolve(__dirname, './src/theme'),
-      '@/contexts': path.resolve(__dirname, './src/contexts'),
-      '@/lib': path.resolve(__dirname, './src/lib'),
-      '@/hooks': path.resolve(__dirname, './src/hooks'),
-      '@/types': path.resolve(__dirname, './src/types'),
+      '@': resolve(__dirname, './src'),
+      '@/components': resolve(__dirname, './src/components'),
+      '@/layouts': resolve(__dirname, './src/layouts'),
+      '@/theme': resolve(__dirname, './src/theme'),
+      '@/contexts': resolve(__dirname, './src/contexts'),
+      '@/lib': resolve(__dirname, './src/lib'),
+      '@/hooks': resolve(__dirname, './src/hooks'),
+      '@/types': resolve(__dirname, './src/types'),
+      // Force using the same React instance to avoid "Invalid hook call" errors
+      // when using linked packages
+      react: resolve(__dirname, './node_modules/react'),
+      'react-dom': resolve(__dirname, './node_modules/react-dom'),
+      '@emotion/react': resolve(__dirname, './node_modules/@emotion/react'),
+      '@emotion/styled': resolve(__dirname, './node_modules/@emotion/styled'),
     },
   },
   test: {

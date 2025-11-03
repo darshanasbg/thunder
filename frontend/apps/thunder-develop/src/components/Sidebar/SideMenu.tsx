@@ -16,13 +16,7 @@
  * under the License.
  */
 
-import {styled} from '@mui/material/styles';
-import Avatar from '@mui/material/Avatar';
-import MuiDrawer, {drawerClasses} from '@mui/material/Drawer';
-import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import {styled, Avatar, Drawer as MuiDrawer, drawerClasses, Box, Divider, Stack, Typography} from '@wso2/oxygen-ui';
 import {User} from '@asgardeo/react';
 import {ThemedIcon} from '@thunder/ui';
 import type {JSX} from 'react';
@@ -49,7 +43,7 @@ export default function SideMenu(): JSX.Element {
       sx={{
         display: {xs: 'none', md: 'block'},
         [`& .${drawerClasses.paper}`]: {
-          backgroundColor: 'background.paper',
+          borderRadius: "0 !important",
         },
       }}
     >
@@ -59,7 +53,7 @@ export default function SideMenu(): JSX.Element {
           mt: 'calc(var(--template-frame-height, 0px) + 4px)',
           p: 1.5,
           justifyContent: 'center',
-          alignItems: 'center',
+          alignItems: 'center'
         }}
       >
         <ThemedIcon

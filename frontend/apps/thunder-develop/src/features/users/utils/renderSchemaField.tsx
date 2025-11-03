@@ -18,13 +18,7 @@
 
 import {Controller} from 'react-hook-form';
 import type {Control, FieldErrors, Path} from 'react-hook-form';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import FormLabel from '@mui/material/FormLabel';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
+import {Box, Typography, TextField, FormLabel, FormControl, Select, MenuItem} from '@wso2/oxygen-ui';
 import type {PropertyDefinition} from '../types/users';
 import ArrayFieldInput from '../components/ArrayFieldInput';
 

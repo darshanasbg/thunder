@@ -16,14 +16,18 @@
  * under the License.
  */
 
-import {styled} from '@mui/material/styles';
-import Divider, {dividerClasses} from '@mui/material/Divider';
-import Menu from '@mui/material/Menu';
-import MuiMenuItem from '@mui/material/MenuItem';
-import {paperClasses} from '@mui/material/Paper';
-import {listClasses} from '@mui/material/List';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemIcon, {listItemIconClasses} from '@mui/material/ListItemIcon';
+import {
+  styled,
+  Divider,
+  dividerClasses,
+  Menu,
+  MenuItem as MuiMenuItem,
+  paperClasses,
+  listClasses,
+  ListItemText,
+  ListItemIcon,
+  listItemIconClasses,
+} from '@wso2/oxygen-ui';
 import {SignOutButton, useAsgardeo} from '@asgardeo/react';
 import {useState, type JSX, type MouseEvent} from 'react';
 import {EllipsisVertical, LogOut} from 'lucide-react';

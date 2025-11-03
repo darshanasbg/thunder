@@ -31,26 +31,31 @@ import (
 )
 
 var (
-	pathTestOU   OrganizationUnit
-	pathTestOUID string
+	pathTestOU = testutils.OrganizationUnit{
+		Handle:      "test-ou-for-users",
+		Name:        "Test OU for Users",
+		Description: "Test organization unit for user path-based operations",
+	}
+
+	testUserSchema = testutils.UserSchema{
+		Name: "employee",
+		Schema: map[string]interface{}{
+			"username": map[string]interface{}{
+				"type":     "string",
+				"unique":   true,
+				"required": true,
+			},
+			"email": map[string]interface{}{
+				"type":     "string",
+				"required": true,
+			},
+			"department": map[string]interface{}{
+				"type": "string",
+			},
+		},
+	}
+	employeeUserSchemaID string
 )
-
-// CreateOURequest represents the request body for creating an organization unit.
-type CreateOURequest struct {
-	Handle      string  `json:"handle"`
-	Name        string  `json:"name"`
-	Description string  `json:"description,omitempty"`
-	Parent      *string `json:"parent,omitempty"`
-}
-
-// OrganizationUnit represents an organization unit.
-type OrganizationUnit struct {
-	ID          string  `json:"id"`
-	Handle      string  `json:"handle"`
-	Name        string  `json:"name"`
-	Description string  `json:"description,omitempty"`
-	Parent      *string `json:"parent"`
-}
 
 // CreateUserByPathRequest represents the request body for creating a user by path.
 type CreateUserByPathRequest struct {
@@ -59,15 +64,9 @@ type CreateUserByPathRequest struct {
 	Attributes json.RawMessage `json:"attributes,omitempty"`
 }
 
-// ErrorResponse represents an error response.
-type ErrorResponse struct {
-	Code        string `json:"code"`
-	Message     string `json:"message"`
-	Description string `json:"description"`
-}
-
 type UserTreeAPITestSuite struct {
 	suite.Suite
+	testOUID string
 }
 
 func TestUserTreeAPITestSuite(t *testing.T) {
@@ -75,73 +74,39 @@ func TestUserTreeAPITestSuite(t *testing.T) {
 }
 
 func (suite *UserTreeAPITestSuite) SetupSuite() {
-	// Create a test organization unit for path-based tests
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
+	ouID, err := testutils.CreateOrganizationUnit(pathTestOU)
+	if err != nil {
+		suite.T().Fatalf("Failed to create test organization unit during setup: %v", err)
 	}
 
-	ouRequest := CreateOURequest{
-		Handle:      "test-ou-for-users",
-		Name:        "Test OU for Users",
-		Description: "Test organization unit for user path-based operations",
+	schemaID, err := testutils.CreateUserType(testUserSchema)
+	if err != nil {
+		suite.T().Fatalf("Failed to create employee user type during setup: %v", err)
 	}
 
-	ouJSON, err := json.Marshal(ouRequest)
-	suite.Require().NoError(err)
+	employeeUserSchemaID = schemaID
 
-	req, err := http.NewRequest("POST", testServerURL+"/organization-units", bytes.NewBuffer(ouJSON))
-	suite.Require().NoError(err)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Do(req)
-	suite.Require().NoError(err)
-	defer resp.Body.Close()
-
-	suite.Equal(http.StatusCreated, resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	suite.Require().NoError(err)
-
-	err = json.Unmarshal(body, &pathTestOU)
-	suite.Require().NoError(err)
-
-	pathTestOUID = pathTestOU.ID
-	suite.T().Logf("Created test OU with ID: %s and handle: %s", pathTestOUID, pathTestOU.Handle)
+	suite.testOUID = ouID
+	suite.T().Logf("Created test OU with ID: %s and handle: %s", suite.testOUID, pathTestOU.Handle)
 }
 
 func (suite *UserTreeAPITestSuite) TearDownSuite() {
-	// Clean up the test organization unit
-	if pathTestOUID != "" {
-		client := &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			},
+	if employeeUserSchemaID != "" {
+		if err := testutils.DeleteUserType(employeeUserSchemaID); err != nil {
+			suite.T().Logf("Failed to delete employee user type during teardown: %v", err)
 		}
+	}
 
-		req, err := http.NewRequest("DELETE", testServerURL+"/organization-units/"+pathTestOUID, nil)
-		if err != nil {
-			suite.T().Logf("Failed to create delete request: %v", err)
-			return
-		}
-
-		resp, err := client.Do(req)
-		if err != nil {
-			suite.T().Logf("Failed to delete test OU: %v", err)
-			return
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusNoContent {
-			suite.T().Logf("Failed to delete test OU, status: %d", resp.StatusCode)
+	if suite.testOUID != "" {
+		if err := testutils.DeleteOrganizationUnit(suite.testOUID); err != nil {
+			suite.T().Logf("Failed to delete test OU during teardown: %v", err)
 		}
 	}
 }
 
 // TestGetUsersByPath tests retrieving users by organization unit handle path
 func (suite *UserTreeAPITestSuite) TestGetUsersByPath() {
-	if pathTestOUID == "" {
+	if suite.testOUID == "" {
 		suite.T().Fatal("OU ID is not available for path-based user retrieval")
 	}
 
@@ -179,7 +144,7 @@ func (suite *UserTreeAPITestSuite) TestGetUsersByPath() {
 
 // TestCreateUserByPath tests creating a user by organization unit handle path
 func (suite *UserTreeAPITestSuite) TestCreateUserByPath() {
-	if pathTestOUID == "" {
+	if suite.testOUID == "" {
 		suite.T().Fatal("OU ID is not available for path-based user creation")
 	}
 
@@ -220,26 +185,13 @@ func (suite *UserTreeAPITestSuite) TestCreateUserByPath() {
 
 	// Verify the created user
 	suite.NotEmpty(createdUser.ID)
-	suite.Equal(pathTestOUID, createdUser.OrganizationUnit)
+	suite.Equal(suite.testOUID, createdUser.OrganizationUnit)
 	suite.Equal("employee", createdUser.Type)
 	suite.NotEmpty(createdUser.Attributes)
 
 	// Clean up: delete the created user
-	deleteReq, err := http.NewRequest("DELETE", testServerURL+"/users/"+createdUser.ID, nil)
-	if err != nil {
-		suite.T().Logf("Failed to create delete request for user: %v", err)
-		return
-	}
-
-	deleteResp, err := client.Do(deleteReq)
-	if err != nil {
+	if err := testutils.DeleteUser(createdUser.ID); err != nil {
 		suite.T().Logf("Failed to delete created user: %v", err)
-		return
-	}
-	defer deleteResp.Body.Close()
-
-	if deleteResp.StatusCode != http.StatusNoContent {
-		suite.T().Logf("Failed to delete created user, status: %d", deleteResp.StatusCode)
 	}
 }
 
@@ -267,7 +219,7 @@ func (suite *UserTreeAPITestSuite) TestGetUsersByInvalidPath() {
 	body, err := io.ReadAll(resp.Body)
 	suite.Require().NoError(err)
 
-	var errorResp ErrorResponse
+	var errorResp testutils.ErrorResponse
 	err = json.Unmarshal(body, &errorResp)
 	suite.Require().NoError(err)
 
@@ -277,7 +229,7 @@ func (suite *UserTreeAPITestSuite) TestGetUsersByInvalidPath() {
 
 // TestGetUsersByPathWithPagination tests retrieving users by path with pagination parameters
 func (suite *UserTreeAPITestSuite) TestGetUsersByPathWithPagination() {
-	if pathTestOUID == "" {
+	if suite.testOUID == "" {
 		suite.T().Fatal("OU ID is not available for pagination test")
 	}
 

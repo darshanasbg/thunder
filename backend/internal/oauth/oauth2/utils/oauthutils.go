@@ -115,3 +115,19 @@ func GenerateOAuth2ClientID() (string, error) {
 func GenerateOAuth2ClientSecret() (string, error) {
 	return generateOAuth2Credential(ClientSecretCredential)
 }
+
+// SeparateOIDCAndNonOIDCScopes separates the given scopes into OIDC and non-OIDC scopes.
+func SeparateOIDCAndNonOIDCScopes(scopes string) ([]string, []string) {
+	scopeSlice := utils.ParseStringArray(scopes, " ")
+	var oidcScopes []string
+	var nonOidcScopes []string
+
+	for _, scp := range scopeSlice {
+		if _, exists := constants.StandardOIDCScopes[scp]; exists {
+			oidcScopes = append(oidcScopes, scp)
+		} else {
+			nonOidcScopes = append(nonOidcScopes, scp)
+		}
+	}
+	return oidcScopes, nonOidcScopes
+}

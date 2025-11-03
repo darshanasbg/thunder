@@ -24,7 +24,8 @@ type OAuthParameters struct {
 	ClientID            string
 	RedirectURI         string
 	ResponseType        string
-	Scopes              string
+	StandardScopes      []string
+	PermissionScopes    []string
 	CodeChallenge       string
 	CodeChallengeMethod string
 	Resource            string

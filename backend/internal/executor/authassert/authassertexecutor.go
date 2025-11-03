@@ -176,6 +176,14 @@ func (a *AuthAssertExecutor) generateAuthAssertion(ctx *flowmodel.NodeContext, l
 		jwtClaims["assurance"] = assertionResult.Context
 	}
 
+	// Include authorized permissions in JWT if present in runtime data
+	// The "authorized_permissions" claim contains space-separated permission strings.
+	// This claim will be present only if the authorization executor has run before this executor in the flow
+	// and has set the authorized permissions in the runtime data.
+	if permissions, exists := ctx.RuntimeData["authorized_permissions"]; exists && permissions != "" {
+		jwtClaims["authorized_permissions"] = permissions
+	}
+
 	if ctx.Application.Token != nil && len(ctx.Application.Token.UserAttributes) > 0 &&
 		ctx.AuthenticatedUser.UserID != "" {
 		var user *user.User

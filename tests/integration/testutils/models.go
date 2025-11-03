@@ -22,6 +22,13 @@ import (
 	"encoding/json"
 )
 
+// UserSchema represents a user schema (user type) definition
+type UserSchema struct {
+	ID     string                 `json:"id,omitempty"`
+	Name   string                 `json:"name"`
+	Schema map[string]interface{} `json:"schema"`
+}
+
 // User represents a user in the system
 type User struct {
 	ID               string          `json:"id"`
@@ -98,4 +105,29 @@ type AuthenticationResponse struct {
 	Type             string `json:"type"`
 	OrganizationUnit string `json:"organization_unit"`
 	Assertion        string `json:"assertion,omitempty"`
+}
+
+// Group represents a group in the system
+type Group struct {
+	ID                 string `json:"id,omitempty"`
+	Name               string `json:"name"`
+	Description        string `json:"description,omitempty"`
+	OrganizationUnitId string `json:"organizationUnitId,omitempty"`
+}
+
+// Assignment represents a role assignment
+type Assignment struct {
+	ID      string `json:"id"`
+	Type    string `json:"type"` // "user" or "group"
+	Display string `json:"display,omitempty"`
+}
+
+// Role represents a role in the system
+type Role struct {
+	ID                 string       `json:"id,omitempty"`
+	Name               string       `json:"name"`
+	Description        string       `json:"description,omitempty"`
+	OrganizationUnitID string       `json:"ouId"`
+	Permissions        []string     `json:"permissions"`
+	Assignments        []Assignment `json:"assignments,omitempty"`
 }

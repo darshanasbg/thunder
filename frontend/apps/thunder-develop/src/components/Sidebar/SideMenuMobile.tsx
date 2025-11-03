@@ -16,12 +16,7 @@
  * under the License.
  */
 
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
-import Drawer, {drawerClasses} from '@mui/material/Drawer';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import {Avatar, Button, Divider, Drawer, Stack, Typography} from '@wso2/oxygen-ui';
 import {Bell, LogOut} from 'lucide-react';
 import type {JSX} from 'react';
 import MenuButton from './MenuButton';
@@ -39,11 +34,7 @@ export default function SideMenuMobile({open, toggleDrawer}: SideMenuMobileProps
       open={open}
       onClose={toggleDrawer(false)}
       sx={{
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        [`& .${drawerClasses.paper}`]: {
-          backgroundImage: 'none',
-          backgroundColor: 'background.paper',
-        },
+        zIndex: (theme) => theme.zIndex.drawer + 1
       }}
     >
       <Stack
