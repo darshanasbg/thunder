@@ -43,9 +43,8 @@ const (
 )
 
 var (
-	testOUID       string
 	testUserSchema = testutils.UserSchema{
-		Name: "person",
+		Name: "userinfo-person",
 		Schema: map[string]interface{}{
 			"username": map[string]interface{}{
 				"type": "string",
@@ -72,6 +71,7 @@ type UserInfoTestSuite struct {
 	userSchemaID  string
 	userID        string
 	client        *http.Client
+	ouID          string
 }
 
 func TestUserInfoTestSuite(t *testing.T) {
@@ -96,11 +96,12 @@ func (ts *UserInfoTestSuite) SetupSuite() {
 		Description: "Organization unit for UserInfo integration testing",
 		Parent:      nil,
 	}
-	testOUID, err := testutils.CreateOrganizationUnit(ou)
+	ouID, err := testutils.CreateOrganizationUnit(ou)
 	ts.Require().NoError(err, "Failed to create test organization unit")
+	ts.ouID = ouID
 
 	// Create user schema
-	testUserSchema.OrganizationUnitId = testOUID
+	testUserSchema.OrganizationUnitId = ts.ouID
 	schemaID, err := testutils.CreateUserType(testUserSchema)
 	ts.Require().NoError(err, "Failed to create test user schema")
 	ts.userSchemaID = schemaID
@@ -124,8 +125,8 @@ func (ts *UserInfoTestSuite) TearDownSuite() {
 	}
 
 	// Clean up organization unit
-	if testOUID != "" {
-		testutils.DeleteOrganizationUnit(testOUID)
+	if ts.ouID != "" {
+		testutils.DeleteOrganizationUnit(ts.ouID)
 	}
 
 	// Clean up user schema
@@ -149,8 +150,8 @@ func (ts *UserInfoTestSuite) createTestUser() string {
 	ts.Require().NoError(err, "Failed to marshal user attributes")
 
 	user := testutils.User{
-		Type:             "person",
-		OrganizationUnit: testOUID,
+		Type:             "userinfo-person",
+		OrganizationUnit: ts.ouID,
 		Attributes:       json.RawMessage(attributesJSON),
 	}
 

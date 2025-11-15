@@ -27,14 +27,7 @@ import (
 	"net/http"
 )
 
-const (
-	testServerURL = "https://localhost:8095"
-
-	// Pre-configured OU from database scripts
-	testOUID     = "test-ou-id"
-	testOUName   = "Test Organization Unit"
-	testOUHandle = "test-ou"
-)
+const testServerURL = "https://localhost:8095"
 
 // Helper function to initiate the authentication flow
 func initiateAuthFlow(appID string, inputs map[string]string) (*FlowStep, error) {

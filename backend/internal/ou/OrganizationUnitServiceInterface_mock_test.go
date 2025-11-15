@@ -916,6 +916,74 @@ func (_c *OrganizationUnitServiceInterfaceMock_IsOrganizationUnitExists_Call) Ru
 	return _c
 }
 
+// IsParent provides a mock function for the type OrganizationUnitServiceInterfaceMock
+func (_mock *OrganizationUnitServiceInterfaceMock) IsParent(parentID string, childID string) (bool, *serviceerror.ServiceError) {
+	ret := _mock.Called(parentID, childID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsOrganizationUnitParent")
+	}
+
+	var r0 bool
+	var r1 *serviceerror.ServiceError
+	if returnFunc, ok := ret.Get(0).(func(string, string) (bool, *serviceerror.ServiceError)); ok {
+		return returnFunc(parentID, childID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string, string) bool); ok {
+		r0 = returnFunc(parentID, childID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(string, string) *serviceerror.ServiceError); ok {
+		r1 = returnFunc(parentID, childID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*serviceerror.ServiceError)
+		}
+	}
+	return r0, r1
+}
+
+// OrganizationUnitServiceInterfaceMock_IsOrganizationUnitParent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsOrganizationUnitParent'
+type OrganizationUnitServiceInterfaceMock_IsOrganizationUnitParent_Call struct {
+	*mock.Call
+}
+
+// IsOrganizationUnitParent is a helper method to define mock.On call
+//   - parentID string
+//   - childID string
+func (_e *OrganizationUnitServiceInterfaceMock_Expecter) IsOrganizationUnitParent(parentID interface{}, childID interface{}) *OrganizationUnitServiceInterfaceMock_IsOrganizationUnitParent_Call {
+	return &OrganizationUnitServiceInterfaceMock_IsOrganizationUnitParent_Call{Call: _e.mock.On("IsOrganizationUnitParent", parentID, childID)}
+}
+
+func (_c *OrganizationUnitServiceInterfaceMock_IsOrganizationUnitParent_Call) Run(run func(parentID string, childID string)) *OrganizationUnitServiceInterfaceMock_IsOrganizationUnitParent_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *OrganizationUnitServiceInterfaceMock_IsOrganizationUnitParent_Call) Return(b bool, serviceError *serviceerror.ServiceError) *OrganizationUnitServiceInterfaceMock_IsOrganizationUnitParent_Call {
+	_c.Call.Return(b, serviceError)
+	return _c
+}
+
+func (_c *OrganizationUnitServiceInterfaceMock_IsOrganizationUnitParent_Call) RunAndReturn(run func(parentID string, childID string) (bool, *serviceerror.ServiceError)) *OrganizationUnitServiceInterfaceMock_IsOrganizationUnitParent_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateOrganizationUnit provides a mock function for the type OrganizationUnitServiceInterfaceMock
 func (_mock *OrganizationUnitServiceInterfaceMock) UpdateOrganizationUnit(id string, request OrganizationUnitRequest) (OrganizationUnit, *serviceerror.ServiceError) {
 	ret := _mock.Called(id, request)

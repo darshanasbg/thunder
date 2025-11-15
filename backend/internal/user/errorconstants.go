@@ -145,6 +145,20 @@ var (
 		Error:            "User schema not found",
 		ErrorDescription: "The specified user schema does not exist",
 	}
+	// ErrorInvalidOrganizationUnitID is returned when the organization unit ID is missing or malformed.
+	ErrorInvalidOrganizationUnitID = serviceerror.ServiceError{
+		Type:             serviceerror.ClientErrorType,
+		Code:             "USR-1022",
+		Error:            "Invalid organization unit",
+		ErrorDescription: "Organization unit id must be specified as a valid UUID",
+	}
+	// ErrorOrganizationUnitMismatch is returned when the organization unit does not match the user type definition.
+	ErrorOrganizationUnitMismatch = serviceerror.ServiceError{
+		Type:             serviceerror.ClientErrorType,
+		Code:             "USR-1023",
+		Error:            "Organization unit mismatch",
+		ErrorDescription: "The organization unit does not match the user type configuration",
+	}
 )
 
 // Server errors for user management operations.

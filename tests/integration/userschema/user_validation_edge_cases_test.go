@@ -259,6 +259,7 @@ func (ts *UserValidationEdgeCasesTestSuite) TestUpdateUserChangeType() {
 	// Update user to different type with valid attributes for new schema
 	updateUserReq := UpdateUserRequest{
 		Type: "numeric-user",
+		OrganizationUnit: ts.organizationUnitID,
 		Attributes: json.RawMessage(`{
 			"age": 30,
 			"salary": 75000.0,
@@ -271,6 +272,7 @@ func (ts *UserValidationEdgeCasesTestSuite) TestUpdateUserChangeType() {
 	// Update user to different type with invalid attributes for new schema
 	updateUserReq2 := UpdateUserRequest{
 		Type: "numeric-user",
+		OrganizationUnit: ts.organizationUnitID,
 		Attributes: json.RawMessage(`{
 			"age": "thirty",
 			"salary": 75000.0,

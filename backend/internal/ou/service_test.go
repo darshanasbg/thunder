@@ -649,6 +649,96 @@ func (suite *OrganizationUnitServiceTestSuite) TestOUService_IsOrganizationUnitE
 	}
 }
 
+func (suite *OrganizationUnitServiceTestSuite) TestOUService_IsParent() {
+	parentID := "parent-1"
+	childID := "child-1"
+
+	suite.Run("returns true when IDs are equal", func() {
+		service := suite.newService(newOrganizationUnitStoreInterfaceMock(suite.T()))
+
+		result, err := service.IsParent(parentID, parentID)
+
+		suite.Require().True(result)
+		suite.Require().Nil(err)
+	})
+
+	suite.Run("returns true for direct parent", func() {
+		store := newOrganizationUnitStoreInterfaceMock(suite.T())
+		store.On("GetOrganizationUnit", childID).
+			Return(OrganizationUnit{ID: childID, Parent: strPtr(parentID)}, nil).
+			Once()
+
+		service := suite.newService(store)
+
+		result, err := service.IsParent(parentID, childID)
+
+		suite.Require().True(result)
+		suite.Require().Nil(err)
+	})
+
+	suite.Run("returns true for ancestor", func() {
+		store := newOrganizationUnitStoreInterfaceMock(suite.T())
+		store.On("GetOrganizationUnit", childID).
+			Return(OrganizationUnit{ID: childID, Parent: strPtr("mid-1")}, nil).
+			Once()
+		store.On("GetOrganizationUnit", "mid-1").
+			Return(OrganizationUnit{ID: "mid-1", Parent: strPtr(parentID)}, nil).
+			Once()
+
+		service := suite.newService(store)
+
+		result, err := service.IsParent(parentID, childID)
+
+		suite.Require().True(result)
+		suite.Require().Nil(err)
+	})
+
+	suite.Run("returns false when parent not in hierarchy", func() {
+		store := newOrganizationUnitStoreInterfaceMock(suite.T())
+		store.On("GetOrganizationUnit", childID).
+			Return(OrganizationUnit{ID: childID, Parent: strPtr("mid-1")}, nil).
+			Once()
+		store.On("GetOrganizationUnit", "mid-1").
+			Return(OrganizationUnit{ID: "mid-1"}, nil).
+			Once()
+
+		service := suite.newService(store)
+
+		result, err := service.IsParent(parentID, childID)
+
+		suite.Require().False(result)
+		suite.Require().Nil(err)
+	})
+
+	suite.Run("returns error when child not found", func() {
+		store := newOrganizationUnitStoreInterfaceMock(suite.T())
+		store.On("GetOrganizationUnit", childID).
+			Return(OrganizationUnit{}, ErrOrganizationUnitNotFound).
+			Once()
+
+		service := suite.newService(store)
+
+		result, err := service.IsParent(parentID, childID)
+
+		suite.Require().False(result)
+		suite.Require().Equal(ErrorOrganizationUnitNotFound, *err)
+	})
+
+	suite.Run("returns error on store failure", func() {
+		store := newOrganizationUnitStoreInterfaceMock(suite.T())
+		store.On("GetOrganizationUnit", childID).
+			Return(OrganizationUnit{}, errors.New("boom")).
+			Once()
+
+		service := suite.newService(store)
+
+		result, err := service.IsParent(parentID, childID)
+
+		suite.Require().False(result)
+		suite.Require().Equal(ErrorInternalServerError, *err)
+	})
+}
+
 func (suite *OrganizationUnitServiceTestSuite) TestOUService_UpdateOrganizationUnit() {
 	parentID := testParentID
 	tests := []struct {

@@ -45,7 +45,7 @@ var (
 	}
 
 	testUserSchema = testutils.UserSchema{
-		Name: "person",
+		Name: "role-person",
 		Schema: map[string]interface{}{
 			"email": map[string]interface{}{
 				"type": "string",
@@ -63,7 +63,7 @@ var (
 	}
 
 	testUser1 = testutils.User{
-		Type: "person",
+		Type: "role-person",
 		Attributes: json.RawMessage(`{
 			"email": "roleuser1@example.com",
 			"firstName": "Role",
@@ -73,7 +73,7 @@ var (
 	}
 
 	testUser2 = testutils.User{
-		Type: "person",
+		Type: "role-person",
 		Attributes: json.RawMessage(`{
 			"email": "roleuser2@example.com",
 			"firstName": "Role",

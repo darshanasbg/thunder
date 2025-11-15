@@ -124,11 +124,16 @@ func (us *userService) GetUsersByPath(
 
 	ou, svcErr := us.ouService.GetOrganizationUnitByPath(handlePath)
 	if svcErr != nil {
-		if svcErr.Code == oupkg.ErrorOrganizationUnitNotFound.Code {
-			return nil, &ErrorOrganizationUnitNotFound
-		}
-		return nil, logErrorAndReturnServerError(logger,
-			"Failed to get organization unit using the handle path from organization service", nil)
+		return nil, mapOUServiceError(
+			svcErr,
+			logger,
+			"resolving organization unit by path",
+			map[string]*serviceerror.ServiceError{
+				oupkg.ErrorOrganizationUnitNotFound.Code: &ErrorOrganizationUnitNotFound,
+				oupkg.ErrorInvalidHandlePath.Code:        &ErrorInvalidHandlePath,
+			},
+			log.String("path", handlePath),
+		)
 	}
 	organizationUnitID := ou.ID
 
@@ -138,7 +143,19 @@ func (us *userService) GetUsersByPath(
 
 	ouResponse, svcErr := us.ouService.GetOrganizationUnitUsers(organizationUnitID, limit, offset)
 	if svcErr != nil {
-		return nil, svcErr
+		return nil, mapOUServiceError(
+			svcErr,
+			logger,
+			"listing organization unit users",
+			map[string]*serviceerror.ServiceError{
+				oupkg.ErrorOrganizationUnitNotFound.Code: &ErrorOrganizationUnitNotFound,
+				oupkg.ErrorInvalidLimit.Code:             &ErrorInvalidLimit,
+				oupkg.ErrorInvalidOffset.Code:            &ErrorInvalidOffset,
+			},
+			log.String("organizationUnitID", organizationUnitID),
+			log.Int("limit", limit),
+			log.Int("offset", offset),
+		)
 	}
 
 	users := make([]User, len(ouResponse.Users))
@@ -165,6 +182,10 @@ func (us *userService) CreateUser(user *User) (*User, *serviceerror.ServiceError
 
 	if user == nil {
 		return nil, &ErrorInvalidRequestFormat
+	}
+
+	if svcErr := us.validateOrganizationUnitForUserType(user.Type, user.OrganizationUnit, logger); svcErr != nil {
+		return nil, svcErr
 	}
 
 	if svcErr := us.validateUserAndUniqueness(user.Type, user.Attributes, logger); svcErr != nil {
@@ -201,11 +222,16 @@ func (us *userService) CreateUserByPath(
 
 	ou, svcErr := us.ouService.GetOrganizationUnitByPath(handlePath)
 	if svcErr != nil {
-		if svcErr.Code == oupkg.ErrorOrganizationUnitNotFound.Code {
-			return nil, &ErrorOrganizationUnitNotFound
-		}
-		return nil, logErrorAndReturnServerError(logger,
-			"Failed to get organization unit using the handle path from organization service", nil)
+		return nil, mapOUServiceError(
+			svcErr,
+			logger,
+			"resolving organization unit by path",
+			map[string]*serviceerror.ServiceError{
+				oupkg.ErrorOrganizationUnitNotFound.Code: &ErrorOrganizationUnitNotFound,
+				oupkg.ErrorInvalidHandlePath.Code:        &ErrorInvalidHandlePath,
+			},
+			log.String("path", handlePath),
+		)
 	}
 
 	user := &User{
@@ -342,6 +368,10 @@ func (us *userService) UpdateUser(userID string, user *User) (*User, *serviceerr
 
 	if user == nil {
 		return nil, &ErrorInvalidRequestFormat
+	}
+
+	if svcErr := us.validateOrganizationUnitForUserType(user.Type, user.OrganizationUnit, logger); svcErr != nil {
+		return nil, svcErr
 	}
 
 	if svcErr := us.validateUserAndUniqueness(user.Type, user.Attributes, logger); svcErr != nil {
@@ -549,6 +579,91 @@ func (us *userService) ValidateUserIDs(userIDs []string) ([]string, *serviceerro
 	return invalidUserIDs, nil
 }
 
+// validateOrganizationUnitForUserType ensures that the organization unit ID is valid and belongs to the user type.
+func (us *userService) validateOrganizationUnitForUserType(
+	userType, organizationUnitID string, logger *log.Logger,
+) *serviceerror.ServiceError {
+	if strings.TrimSpace(userType) == "" {
+		return &ErrorUserSchemaNotFound
+	}
+
+	if strings.TrimSpace(organizationUnitID) == "" || !utils.IsValidUUID(organizationUnitID) {
+		return &ErrorInvalidOrganizationUnitID
+	}
+
+	if us.ouService == nil {
+		logger.Error("Organization unit service is not configured for user operations")
+		return &ErrorInternalServerError
+	}
+
+	exists, svcErr := us.ouService.IsOrganizationUnitExists(organizationUnitID)
+	if svcErr != nil {
+		return mapOUServiceError(
+			svcErr,
+			logger,
+			"verifying organization unit existence",
+			map[string]*serviceerror.ServiceError{
+				oupkg.ErrorOrganizationUnitNotFound.Code:  &ErrorOrganizationUnitNotFound,
+				oupkg.ErrorInvalidRequestFormat.Code:      &ErrorInvalidOrganizationUnitID,
+				oupkg.ErrorMissingOrganizationUnitID.Code: &ErrorInvalidOrganizationUnitID,
+			},
+			log.String("organizationUnitID", organizationUnitID),
+		)
+	}
+	if !exists {
+		return &ErrorOrganizationUnitNotFound
+	}
+
+	if us.userSchemaService == nil {
+		logger.Error("User schema service is not configured for user operations")
+		return &ErrorInternalServerError
+	}
+
+	userSchema, svcErr := us.userSchemaService.GetUserSchemaByName(userType)
+	if svcErr != nil {
+		if svcErr.Code == userschema.ErrorUserSchemaNotFound.Code {
+			return &ErrorUserSchemaNotFound
+		}
+		logger.Error("Failed to retrieve user schema",
+			log.String("userType", userType), log.Any("error", svcErr))
+		return &ErrorInternalServerError
+	}
+
+	if userSchema == nil {
+		logger.Error("User schema service returned nil response", log.String("userType", userType))
+		return &ErrorInternalServerError
+	}
+
+	if userSchema.OrganizationUnitID == organizationUnitID {
+		return nil
+	}
+
+	isParent, svcErr := us.ouService.IsParent(userSchema.OrganizationUnitID, organizationUnitID)
+	if svcErr != nil {
+		return mapOUServiceError(
+			svcErr,
+			logger,
+			"validating organization unit hierarchy",
+			map[string]*serviceerror.ServiceError{
+				oupkg.ErrorOrganizationUnitNotFound.Code: &ErrorOrganizationUnitNotFound,
+			},
+			log.String("userType", userType),
+			log.String("organizationUnitID", organizationUnitID),
+			log.String("schemaOrganizationUnitID", userSchema.OrganizationUnitID),
+		)
+	}
+
+	if !isParent {
+		logger.Debug("Organization unit mismatch for user type",
+			log.String("userType", userType),
+			log.String("organizationUnitID", organizationUnitID),
+			log.String("schemaOrganizationUnitID", userSchema.OrganizationUnitID))
+		return &ErrorOrganizationUnitMismatch
+	}
+
+	return nil
+}
+
 // validateUserAndUniqueness validates the user schema and checks for uniqueness.
 func (us *userService) validateUserAndUniqueness(
 	userType string, attributes []byte, logger *log.Logger,
@@ -632,6 +747,35 @@ func logErrorAndReturnServerError(
 		fields = append(fields, log.Error(err))
 	}
 	logger.Error(message, fields...)
+	return &ErrorInternalServerError
+}
+
+// mapOUServiceError converts organization unit service errors to user service errors.
+func mapOUServiceError(
+	svcErr *serviceerror.ServiceError,
+	logger *log.Logger,
+	context string,
+	mappings map[string]*serviceerror.ServiceError,
+	fields ...log.Field,
+) *serviceerror.ServiceError {
+	if svcErr == nil {
+		return nil
+	}
+
+	if mappedErr, ok := mappings[svcErr.Code]; ok {
+		return mappedErr
+	}
+
+	if svcErr.Type == serviceerror.ClientErrorType {
+		logFields := append([]log.Field{}, fields...)
+		logFields = append(logFields, log.Any("error", svcErr))
+		logger.Error(fmt.Sprintf("Unexpected organization unit client error while %s", context), logFields...)
+		return &ErrorInternalServerError
+	}
+
+	logFields := append([]log.Field{}, fields...)
+	logFields = append(logFields, log.Any("error", svcErr))
+	logger.Error(fmt.Sprintf("Organization unit service error while %s", context), logFields...)
 	return &ErrorInternalServerError
 }
 

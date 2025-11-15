@@ -257,6 +257,7 @@ func (ts *UserValidationTestSuite) TestUpdateUserWithValidSchema() {
 	// Update user with valid data
 	updateUserReq := UpdateUserRequest{
 		Type: "employee",
+		OrganizationUnit: ts.organizationUnitID,
 		Attributes: json.RawMessage(`{
 			"firstName": "John",
 			"lastName": "Smith",
@@ -290,6 +291,7 @@ func (ts *UserValidationTestSuite) TestUpdateUserWithInvalidSchema() {
 	// Update user with invalid data (wrong type for isManager)
 	updateUserReq := UpdateUserRequest{
 		Type: "employee",
+		OrganizationUnit: ts.organizationUnitID,
 		Attributes: json.RawMessage(`{
 			"firstName": "John",
 			"lastName": "Smith",

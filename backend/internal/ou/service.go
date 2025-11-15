@@ -41,6 +41,7 @@ type OrganizationUnitServiceInterface interface {
 	GetOrganizationUnit(id string) (OrganizationUnit, *serviceerror.ServiceError)
 	GetOrganizationUnitByPath(handlePath string) (OrganizationUnit, *serviceerror.ServiceError)
 	IsOrganizationUnitExists(id string) (bool, *serviceerror.ServiceError)
+	IsParent(parentID, childID string) (bool, *serviceerror.ServiceError)
 	UpdateOrganizationUnit(
 		id string, request OrganizationUnitRequest,
 	) (OrganizationUnit, *serviceerror.ServiceError)
@@ -229,6 +230,39 @@ func (ous *organizationUnitService) IsOrganizationUnitExists(id string) (bool, *
 	}
 
 	return exists, nil
+}
+
+// IsParent checks whether the provided parentID is an ancestor of childID.
+// Returns true if the parent and child are the same or if parentID is an ancestor of childID.
+func (ous *organizationUnitService) IsParent(
+	parentID, childID string,
+) (bool, *serviceerror.ServiceError) {
+	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, loggerComponentNameService))
+
+	if strings.TrimSpace(parentID) == "" || strings.TrimSpace(childID) == "" {
+		return false, &ErrorInvalidRequestFormat
+	}
+
+	currentParent := &childID
+	for currentParent != nil {
+		if *currentParent == parentID {
+			return true, nil
+		}
+
+		parentOU, err := ous.ouStore.GetOrganizationUnit(*currentParent)
+		if err != nil {
+			if errors.Is(err, ErrOrganizationUnitNotFound) {
+				logger.Debug("Encountered missing organization unit in hierarchy", log.String("ouID", *currentParent))
+				return false, &ErrorOrganizationUnitNotFound
+			}
+			logger.Error("Failed to traverse organization unit hierarchy", log.Error(err))
+			return false, &ErrorInternalServerError
+		}
+
+		currentParent = parentOU.Parent
+	}
+
+	return false, nil
 }
 
 // UpdateOrganizationUnit updates an organization unit.
