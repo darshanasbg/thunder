@@ -212,6 +212,67 @@ paths:
         "500":
           description: Internal server error
 
+  /users/me:
+    get:
+      tags:
+        - users
+      summary: Get self user profile
+      security:
+        - OAuth2: [self]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: "e1b6ba6c-deb2-4d24-87b0-bbf79fa4487c"
+                organizationUnit: "26eec421-f1bb-4deb-a5d3-9ab6554c2ae6"
+                type: "employee"
+                attributes:
+                  username: "alice.wu"
+                  firstname: "Alice"
+                  lastname: "Wu"
+                  email: "alice.wu@company.inc"
+        "401":
+          description: Unauthorized - missing or invalid token
+        "404":
+          description: Authenticated user not found
+        "500":
+          description: Internal server error
+    patch:
+      tags:
+        - users
+      summary: Update specified attributes of the self profile
+      security:
+        - OAuth2: [self]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCurrentUserRequest'
+            example:
+              attributes:
+                firstname: "Alice"
+                lastname: "Wu"
+                password: "n3wP@ssword!"
+      responses:
+        "200":
+          description: Updated profile of the current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "400":
+          description: Bad request (invalid attributes)
+        "401":
+          description: Unauthorized - missing or invalid token
+        "404":
+          description: Authenticated user not found
+        "500":
+          description: Internal server error
+
   /users/{id}:
     get:
       tags:
@@ -1095,6 +1156,7 @@ components:
           tokenUrl: https://localhost:8090/oauth2/token
           scopes:
             system: Access to system management APIs
+            self: Access to self-service profile APIs
 
   parameters:
     limitQueryParam:
@@ -1300,6 +1362,14 @@ components:
             type: string
             format: uuid
             description: "Group ID"
+        attributes:
+          type: object
+          description: "User attributes"
+          additionalProperties: true
+    UpdateCurrentUserRequest:
+      type: object
+      required: [attributes]
+      properties:
         attributes:
           type: object
           description: "User attributes"
