@@ -78,6 +78,29 @@ func registerRoutes(mux *http.ServeMux, userHandler *userHandler) {
 		w.WriteHeader(http.StatusNoContent)
 	}, opts2))
 
+	optsSelf := middleware.CORSOptions{
+		AllowedMethods:   "GET, PUT",
+		AllowedHeaders:   "Content-Type, Authorization",
+		AllowCredentials: true,
+	}
+	mux.HandleFunc(middleware.WithCORS("GET /users/me", userHandler.HandleSelfUserGetRequest, optsSelf))
+	mux.HandleFunc(middleware.WithCORS("PUT /users/me", userHandler.HandleSelfUserPutRequest, optsSelf))
+	mux.HandleFunc(middleware.WithCORS("OPTIONS /users/me", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}, optsSelf))
+
+	optsSelfCredentials := middleware.CORSOptions{
+		AllowedMethods:   "POST",
+		AllowedHeaders:   "Content-Type, Authorization",
+		AllowCredentials: true,
+	}
+	mux.HandleFunc(middleware.WithCORS("POST /users/me/update-credentials",
+		userHandler.HandleSelfUserCredentialUpdateRequest, optsSelfCredentials))
+	mux.HandleFunc(middleware.WithCORS("OPTIONS /users/me/update-credentials",
+		func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		}, optsSelfCredentials))
+
 	opts3 := middleware.CORSOptions{
 		AllowedMethods:   "GET, POST",
 		AllowedHeaders:   "Content-Type, Authorization",

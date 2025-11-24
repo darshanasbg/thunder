@@ -5,6 +5,8 @@
 package user
 
 import (
+	"encoding/json"
+
 	"github.com/asgardeo/thunder/internal/system/error/serviceerror"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -715,6 +717,135 @@ func (_c *UserServiceInterfaceMock_UpdateUser_Call) Return(user1 *User, serviceE
 }
 
 func (_c *UserServiceInterfaceMock_UpdateUser_Call) RunAndReturn(run func(userID string, user *User) (*User, *serviceerror.ServiceError)) *UserServiceInterfaceMock_UpdateUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateUserAttributes provides a mock function for the type UserServiceInterfaceMock
+func (_mock *UserServiceInterfaceMock) UpdateUserAttributes(userID string, attributes json.RawMessage) (*User, *serviceerror.ServiceError) {
+	ret := _mock.Called(userID, attributes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUserAttributes")
+	}
+
+	var r0 *User
+	var r1 *serviceerror.ServiceError
+	if returnFunc, ok := ret.Get(0).(func(string, json.RawMessage) (*User, *serviceerror.ServiceError)); ok {
+		return returnFunc(userID, attributes)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string, json.RawMessage) *User); ok {
+		r0 = returnFunc(userID, attributes)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*User)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(string, json.RawMessage) *serviceerror.ServiceError); ok {
+		r1 = returnFunc(userID, attributes)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*serviceerror.ServiceError)
+		}
+	}
+	return r0, r1
+}
+
+// UserServiceInterfaceMock_UpdateUserAttributes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUserAttributes'
+type UserServiceInterfaceMock_UpdateUserAttributes_Call struct {
+	*mock.Call
+}
+
+// UpdateUserAttributes is a helper method to define mock.On call
+//   - userID string
+//   - attributes json.RawMessage
+func (_e *UserServiceInterfaceMock_Expecter) UpdateUserAttributes(userID interface{}, attributes interface{}) *UserServiceInterfaceMock_UpdateUserAttributes_Call {
+	return &UserServiceInterfaceMock_UpdateUserAttributes_Call{Call: _e.mock.On("UpdateUserAttributes", userID, attributes)}
+}
+
+func (_c *UserServiceInterfaceMock_UpdateUserAttributes_Call) Run(run func(userID string, attributes json.RawMessage)) *UserServiceInterfaceMock_UpdateUserAttributes_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 json.RawMessage
+		if args[1] != nil {
+			arg1 = args[1].(json.RawMessage)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *UserServiceInterfaceMock_UpdateUserAttributes_Call) Return(user *User, serviceError *serviceerror.ServiceError) *UserServiceInterfaceMock_UpdateUserAttributes_Call {
+	_c.Call.Return(user, serviceError)
+	return _c
+}
+
+func (_c *UserServiceInterfaceMock_UpdateUserAttributes_Call) RunAndReturn(run func(userID string, attributes json.RawMessage) (*User, *serviceerror.ServiceError)) *UserServiceInterfaceMock_UpdateUserAttributes_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateUserCredentials provides a mock function for the type UserServiceInterfaceMock
+func (_mock *UserServiceInterfaceMock) UpdateUserCredentials(userID string, attributes json.RawMessage) *serviceerror.ServiceError {
+	ret := _mock.Called(userID, attributes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUserCredentials")
+	}
+
+	var r0 *serviceerror.ServiceError
+	if returnFunc, ok := ret.Get(0).(func(string, json.RawMessage) *serviceerror.ServiceError); ok {
+		r0 = returnFunc(userID, attributes)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*serviceerror.ServiceError)
+		}
+	}
+	return r0
+}
+
+// UserServiceInterfaceMock_UpdateUserCredentials_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUserCredentials'
+type UserServiceInterfaceMock_UpdateUserCredentials_Call struct {
+	*mock.Call
+}
+
+// UpdateUserCredentials is a helper method to define mock.On call
+//   - userID string
+//   - attributes json.RawMessage
+func (_e *UserServiceInterfaceMock_Expecter) UpdateUserCredentials(userID interface{}, attributes interface{}) *UserServiceInterfaceMock_UpdateUserCredentials_Call {
+	return &UserServiceInterfaceMock_UpdateUserCredentials_Call{Call: _e.mock.On("UpdateUserCredentials", userID, attributes)}
+}
+
+func (_c *UserServiceInterfaceMock_UpdateUserCredentials_Call) Run(run func(userID string, attributes json.RawMessage)) *UserServiceInterfaceMock_UpdateUserCredentials_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 json.RawMessage
+		if args[1] != nil {
+			arg1 = args[1].(json.RawMessage)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *UserServiceInterfaceMock_UpdateUserCredentials_Call) Return(serviceError *serviceerror.ServiceError) *UserServiceInterfaceMock_UpdateUserCredentials_Call {
+	_c.Call.Return(serviceError)
+	return _c
+}
+
+func (_c *UserServiceInterfaceMock_UpdateUserCredentials_Call) RunAndReturn(run func(userID string, attributes json.RawMessage) *serviceerror.ServiceError) *UserServiceInterfaceMock_UpdateUserCredentials_Call {
 	_c.Call.Return(run)
 	return _c
 }

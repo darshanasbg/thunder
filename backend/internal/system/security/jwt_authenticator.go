@@ -162,7 +162,13 @@ func extractClaim(claims map[string]interface{}, key string) string {
 }
 
 // getRequiredScopes returns the required scopes for a given route path.
-func (h *jwtAuthenticator) getRequiredScopes(_ *http.Request) []string {
+func (h *jwtAuthenticator) getRequiredScopes(r *http.Request) []string {
+	// User self service endpoints don't require scopes
+	if strings.HasPrefix(r.URL.Path, "/users/me") {
+		return []string{}
+	}
+
+	// Default required scope for other endpoints
 	return []string{"system"}
 }
 

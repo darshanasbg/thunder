@@ -159,6 +159,13 @@ var (
 		Error:            "Organization unit mismatch",
 		ErrorDescription: "The organization unit does not match the user type configuration",
 	}
+	// ErrorInvalidCredential is the error returned when credentials are invalid.
+	ErrorInvalidCredential = serviceerror.ServiceError{
+		Type:             serviceerror.ClientErrorType,
+		Code:             "USR-1024",
+		Error:            "Invalid request format",
+		ErrorDescription: "Invalid credential fields in request",
+	}
 )
 
 // Server errors for user management operations.

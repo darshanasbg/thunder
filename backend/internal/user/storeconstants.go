@@ -57,6 +57,11 @@ var (
 		ID:    "ASQ-USER_MGT-05",
 		Query: "UPDATE \"USER\" SET OU_ID = $2, TYPE = $3, ATTRIBUTES = $4 WHERE USER_ID = $1;",
 	}
+	// QueryUpdateUserCredentialsByUserID is the query to update user credentials by user ID.
+	QueryUpdateUserCredentialsByUserID = model.DBQuery{
+		ID:    "ASQ-USER_MGT-14",
+		Query: "UPDATE \"USER\" SET CREDENTIALS = $2 WHERE USER_ID = $1",
+	}
 	// QueryDeleteUserByUserID is the query to delete a user by user ID.
 	QueryDeleteUserByUserID = model.DBQuery{
 		ID:    "ASQ-USER_MGT-06",

@@ -28,6 +28,7 @@ import (
 	"strings"
 
 	serverconst "github.com/asgardeo/thunder/internal/system/constants"
+	syscontext "github.com/asgardeo/thunder/internal/system/context"
 	"github.com/asgardeo/thunder/internal/system/error/apierror"
 	"github.com/asgardeo/thunder/internal/system/error/serviceerror"
 	"github.com/asgardeo/thunder/internal/system/log"
@@ -338,6 +339,103 @@ func (uh *userHandler) HandleUserPostByPathRequest(w http.ResponseWriter, r *htt
 	}
 
 	logger.Debug("Successfully created user by path", log.String("path", path), log.String("userType", user.Type))
+}
+
+// HandleSelfUserGetRequest handles the self user retrieval.
+func (uh *userHandler) HandleSelfUserGetRequest(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, handlerLoggerComponentName))
+
+	userID := syscontext.GetUserID(r.Context())
+	if strings.TrimSpace(userID) == "" {
+		handleError(w, logger, &ErrorAuthenticationFailed)
+		return
+	}
+
+	user, svcErr := uh.userService.GetUser(userID)
+	if svcErr != nil {
+		handleError(w, logger, svcErr)
+		return
+	}
+
+	w.Header().Set(serverconst.ContentTypeHeaderName, serverconst.ContentTypeJSON)
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		logger.Error("Error encoding response", log.Error(err))
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+
+	logger.Debug("Self user GET response sent", log.String("user id", userID))
+}
+
+// HandleSelfUserPutRequest handles the self user update.
+func (uh *userHandler) HandleSelfUserPutRequest(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, handlerLoggerComponentName))
+
+	userID := syscontext.GetUserID(r.Context())
+	if strings.TrimSpace(userID) == "" {
+		handleError(w, logger, &ErrorAuthenticationFailed)
+		return
+	}
+
+	updateRequest, err := sysutils.DecodeJSONBody[UpdateSelfUserRequest](r)
+	if err != nil {
+		handleError(w, logger, &ErrorInvalidRequestFormat)
+		return
+	}
+
+	if updateRequest == nil || len(updateRequest.Attributes) == 0 {
+		handleError(w, logger, &ErrorInvalidRequestFormat)
+		return
+	}
+
+	updatedUser, svcErr := uh.userService.UpdateUserAttributes(userID, updateRequest.Attributes)
+	if svcErr != nil {
+		handleError(w, logger, svcErr)
+		return
+	}
+
+	w.Header().Set(serverconst.ContentTypeHeaderName, serverconst.ContentTypeJSON)
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(updatedUser); err != nil {
+		logger.Error("Error encoding response", log.Error(err))
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+
+	logger.Debug("Self user PUT response sent", log.String("user id", userID))
+}
+
+// HandleSelfUserCredentialUpdateRequest handles the credential update for the authenticated user.
+func (uh *userHandler) HandleSelfUserCredentialUpdateRequest(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, handlerLoggerComponentName))
+
+	userID := syscontext.GetUserID(r.Context())
+	if strings.TrimSpace(userID) == "" {
+		handleError(w, logger, &ErrorAuthenticationFailed)
+		return
+	}
+
+	updateRequest, err := sysutils.DecodeJSONBody[UpdateSelfUserRequest](r)
+	if err != nil {
+		handleError(w, logger, &ErrorInvalidRequestFormat)
+		return
+	}
+
+	if updateRequest == nil || len(updateRequest.Attributes) == 0 {
+		handleError(w, logger, &ErrorMissingCredentials)
+		return
+	}
+
+	if svcErr := uh.userService.UpdateUserCredentials(userID, updateRequest.Attributes); svcErr != nil {
+		handleError(w, logger, svcErr)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	logger.Debug("Self user credential update response sent", log.String("user id", userID))
 }
 
 // parsePaginationParams parses limit and offset query parameters from the request.

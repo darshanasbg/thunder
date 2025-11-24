@@ -54,6 +54,8 @@ type UserServiceInterface interface {
 	GetUser(userID string) (*User, *serviceerror.ServiceError)
 	GetUserGroups(userID string, limit, offset int) (*UserGroupListResponse, *serviceerror.ServiceError)
 	UpdateUser(userID string, user *User) (*User, *serviceerror.ServiceError)
+	UpdateUserAttributes(userID string, attributes json.RawMessage) (*User, *serviceerror.ServiceError)
+	UpdateUserCredentials(userID string, attributes json.RawMessage) *serviceerror.ServiceError
 	DeleteUser(userID string) *serviceerror.ServiceError
 	IdentifyUser(filters map[string]interface{}) (*string, *serviceerror.ServiceError)
 	VerifyUser(userID string, credentials map[string]interface{}) (*User, *serviceerror.ServiceError)
@@ -391,6 +393,191 @@ func (us *userService) UpdateUser(userID string, user *User) (*User, *serviceerr
 	return user, nil
 }
 
+// UpdateUserAttributes updates only the attributes of a user while preserving immutable fields.
+func (us *userService) UpdateUserAttributes(
+	userID string, attributes json.RawMessage,
+) (*User, *serviceerror.ServiceError) {
+	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, loggerComponentName))
+	logger.Debug("Updating user attributes", log.String("id", userID))
+
+	if strings.TrimSpace(userID) == "" {
+		return nil, &ErrorMissingUserID
+	}
+
+	if len(attributes) == 0 {
+		return nil, &ErrorInvalidRequestFormat
+	}
+
+	hasCredentials, svcErr := us.containsCredentialFields(attributes)
+	if svcErr != nil {
+		return nil, svcErr
+	}
+	if hasCredentials {
+		return nil, &ErrorInvalidRequestFormat
+	}
+
+	user, err := us.userStore.GetUser(userID)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			logger.Debug("User not found", log.String("id", userID))
+			return nil, &ErrorUserNotFound
+		}
+		return nil, logErrorAndReturnServerError(logger, "Failed to get user", err, log.String("id", userID))
+	}
+
+	user.Attributes = attributes
+
+	if svcErr := us.validateUserAndUniqueness(user.Type, user.Attributes, logger); svcErr != nil {
+		return nil, svcErr
+	}
+
+	err = us.userStore.UpdateUser(&user)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			logger.Debug("User not found", log.String("id", userID))
+			return nil, &ErrorUserNotFound
+		}
+		return nil, logErrorAndReturnServerError(logger, "Failed to update user attributes", err, log.String("id", userID))
+	}
+
+	logger.Debug("Successfully updated user attributes", log.String("id", userID))
+	return &user, nil
+}
+
+// containsCredentialFields checks whether the attributes include credential fields.
+func (us *userService) containsCredentialFields(attributes json.RawMessage) (bool, *serviceerror.ServiceError) {
+	if len(attributes) == 0 {
+		return false, nil
+	}
+
+	var attrs map[string]any
+	if err := json.Unmarshal(attributes, &attrs); err != nil {
+		return false, &ErrorInvalidRequestFormat
+	}
+
+	for credField := range supportedCredentialFields {
+		if _, ok := attrs[credField]; ok {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// UpdateUserCredentials updates the credentials of a user.
+func (us *userService) UpdateUserCredentials(userID string, attributes json.RawMessage) *serviceerror.ServiceError {
+	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, loggerComponentName))
+	logger.Debug("Updating user credentials", log.String("id", userID))
+
+	if strings.TrimSpace(userID) == "" {
+		return &ErrorAuthenticationFailed
+	}
+
+	if len(attributes) == 0 {
+		return &ErrorMissingCredentials
+	}
+
+	var attrs map[string]interface{}
+	if err := json.Unmarshal(attributes, &attrs); err != nil {
+		return &ErrorInvalidRequestFormat
+	}
+	if len(attrs) == 0 {
+		return &ErrorMissingCredentials
+	}
+
+	var invalidCredentialFields []string
+	for key := range attrs {
+		if _, found := supportedCredentialFields[key]; !found {
+			invalidCredentialFields = append(invalidCredentialFields, key)
+		}
+	}
+	if len(invalidCredentialFields) > 0 {
+		errorDesc := fmt.Sprintf(
+			"Invalid credential fields in request: %s",
+			strings.Join(invalidCredentialFields, ", "),
+		)
+		return serviceerror.CustomServiceError(ErrorInvalidCredential, errorDesc)
+	}
+
+	user := &User{
+		ID:         userID,
+		Attributes: attributes,
+	}
+
+	credentials, err := extractCredentials(user)
+	if err != nil {
+		return logErrorAndReturnServerError(
+			logger,
+			"Failed to extract credentials from request",
+			err,
+			log.String("userID", userID),
+		)
+	}
+
+	if len(credentials) == 0 {
+		return &ErrorMissingCredentials
+	}
+
+	_, existingCredentials, err := us.userStore.GetCredentials(userID)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			logger.Debug("User not found", log.String("id", userID))
+			return &ErrorUserNotFound
+		}
+		return logErrorAndReturnServerError(
+			logger,
+			"Failed to retrieve existing user credentials",
+			err,
+			log.String("id", userID),
+		)
+	}
+
+	mergedCredentials := us.mergeCredentials(existingCredentials, credentials)
+
+	err = us.userStore.UpdateUserCredentials(userID, mergedCredentials)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			logger.Debug("User not found", log.String("id", userID))
+			return &ErrorUserNotFound
+		}
+		return logErrorAndReturnServerError(logger, "Failed to update user credentials", err, log.String("id", userID))
+	}
+
+	logger.Debug("Successfully updated user credentials", log.String("id", userID))
+	return nil
+}
+
+// mergeCredentials combines existing credentials with provided credentials, preferring provided values.
+func (us *userService) mergeCredentials(existing []Credential, provided []Credential) []Credential {
+	providedMap := make(map[string]Credential, len(provided))
+	providedOrder := make([]string, 0, len(provided))
+	for _, cred := range provided {
+		if _, exists := providedMap[cred.CredentialType]; !exists {
+			providedOrder = append(providedOrder, cred.CredentialType)
+		}
+		providedMap[cred.CredentialType] = cred
+	}
+
+	merged := make([]Credential, 0, len(existing)+len(providedMap))
+
+	for _, storedCred := range existing {
+		if updatedCred, found := providedMap[storedCred.CredentialType]; found {
+			merged = append(merged, updatedCred)
+			delete(providedMap, storedCred.CredentialType)
+		} else {
+			merged = append(merged, storedCred)
+		}
+	}
+
+	for _, credType := range providedOrder {
+		if cred, found := providedMap[credType]; found {
+			merged = append(merged, cred)
+		}
+	}
+
+	return merged
+}
+
 // DeleteUser delete the user for given user id.
 func (us *userService) DeleteUser(userID string) *serviceerror.ServiceError {
 	logger := log.GetLogger().With(log.String(log.LoggerKeyComponentName, loggerComponentName))
@@ -467,7 +654,7 @@ func (us *userService) VerifyUser(
 		return nil, &ErrorAuthenticationFailed
 	}
 
-	user, storedCredentials, err := us.userStore.VerifyUser(userID)
+	user, storedCredentials, err := us.userStore.GetCredentials(userID)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
 			logger.Debug("User not found", log.String("id", userID))

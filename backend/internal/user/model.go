@@ -88,6 +88,11 @@ type UpdateUserRequest struct {
 	Attributes       json.RawMessage `json:"attributes,omitempty"`
 }
 
+// UpdateSelfUserRequest represents the request body for updating the authenticated user.
+type UpdateSelfUserRequest struct {
+	Attributes json.RawMessage `json:"attributes,omitempty"`
+}
+
 // CreateUserByPathRequest represents the request body for creating a user under a handle path.
 type CreateUserByPathRequest struct {
 	Type       string          `json:"type"`

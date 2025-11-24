@@ -20,6 +20,8 @@ tags:
     description: Operations related to user management
   - name: users-by-path
     description: Operations related to user management using hierarchical handle paths
+  - name: self
+    description: Self service operations related to the user
   - name: user-schemas
     description: Operations related to user type schema management
 
@@ -689,6 +691,222 @@ paths:
                 type: string
               example: "Internal server error"
 
+  /users/me:
+    get:
+      tags:
+        - self
+      summary: Get self user profile
+      security:
+        - OAuth2: []
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: "e1b6ba6c-deb2-4d24-87b0-bbf79fa4487c"
+                organizationUnit: "26eec421-f1bb-4deb-a5d3-9ab6554c2ae6"
+                type: "employee"
+                attributes:
+                  username: "alice.wu"
+                  firstname: "Alice"
+                  lastname: "Wu"
+                  email: "alice.wu@company.inc"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-1018"
+                message: "Authentication failed"
+                description: "Invalid credentials provided"
+        "404":
+          description: Authenticated user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-1003"
+                message: "User not found"
+                description: "The user with the specified id does not exist"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-5000"
+                message: "Internal server error"
+                description: "An unexpected error occurred while processing the request"
+    put:
+      tags:
+        - self
+      summary: Update self user profile
+      security:
+        - OAuth2: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSelfUserRequest'
+            example:
+              attributes:
+                username: "alice.wu"
+                firstname: "Alice"
+                lastname: "Wu"
+                email: "alice.wu@company.io"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: "e1b6ba6c-deb2-4d24-87b0-bbf79fa4487c"
+                organizationUnit: "26eec421-f1bb-4deb-a5d3-9ab6554c2ae6"
+                type: "employee"
+                attributes:
+                  username: "alice.wu"
+                  firstname: "Alice"
+                  lastname: "Wu"
+                  email: "alice.wu@company.io"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid-request-format:
+                  summary: Invalid request format
+                  value:
+                    code: "USR-1001"
+                    message: "Invalid request format"
+                    description: "The request body is malformed or contains invalid data"
+                schema-validation-failed:
+                  summary: Schema validation failed
+                  value:
+                    code: "USR-1019"
+                    message: "Schema validation failed"
+                    description: "User attributes do not conform to the required schema"
+                user-schema-not-found:
+                  summary: User schema not found
+                  value:
+                    code: "USR-1021"
+                    message: "User schema not found"
+                    description: "The specified user schema does not exist"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-1018"
+                message: "Authentication failed"
+                description: "Invalid credentials provided"
+        "404":
+          description: Authenticated user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-1003"
+                message: "User not found"
+                description: "The user with the specified id does not exist"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-1014"
+                message: "Attribute conflict"
+                description: "A user with the same unique attribute value already exists"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-5000"
+                message: "Internal server error"
+                description: "An unexpected error occurred while processing the request"
+
+  /users/me/update-credentials:
+    post:
+      tags:
+        - self
+      summary: Update self user credentials
+      security:
+        - OAuth2: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSelfUserRequest'
+            example:
+              attributes:
+                password: "n3wP@ssword!"
+      responses:
+        "204":
+          description: Credentials updated
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missing-credentials:
+                  summary: Missing credentials
+                  value:
+                    code: "USR-1017"
+                    message: "Missing credentials"
+                    description: "At least one credential field must be provided"
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-1018"
+                message: "Authentication failed"
+                description: "Invalid credentials provided"
+        "404":
+          description: Authenticated user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-1003"
+                message: "User not found"
+                description: "The user with the specified id does not exist"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "USR-5000"
+                message: "Internal server error"
+                description: "An unexpected error occurred while processing the request"
+
   /user-schemas:
     get:
       tags:
@@ -1300,6 +1518,14 @@ components:
             type: string
             format: uuid
             description: "Group ID"
+        attributes:
+          type: object
+          description: "User attributes"
+          additionalProperties: true
+    UpdateSelfUserRequest:
+      type: object
+      required: [attributes]
+      properties:
         attributes:
           type: object
           description: "User attributes"

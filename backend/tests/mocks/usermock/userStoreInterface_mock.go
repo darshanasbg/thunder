@@ -144,6 +144,74 @@ func (_c *userStoreInterfaceMock_DeleteUser_Call) RunAndReturn(run func(id strin
 	return _c
 }
 
+// GetCredentials provides a mock function for the type userStoreInterfaceMock
+func (_mock *userStoreInterfaceMock) GetCredentials(id string) (user.User, []user.Credential, error) {
+	ret := _mock.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCredentials")
+	}
+
+	var r0 user.User
+	var r1 []user.Credential
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(string) (user.User, []user.Credential, error)); ok {
+		return returnFunc(id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) user.User); ok {
+		r0 = returnFunc(id)
+	} else {
+		r0 = ret.Get(0).(user.User)
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) []user.Credential); ok {
+		r1 = returnFunc(id)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]user.Credential)
+		}
+	}
+	if returnFunc, ok := ret.Get(2).(func(string) error); ok {
+		r2 = returnFunc(id)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// userStoreInterfaceMock_GetCredentials_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCredentials'
+type userStoreInterfaceMock_GetCredentials_Call struct {
+	*mock.Call
+}
+
+// GetCredentials is a helper method to define mock.On call
+//   - id string
+func (_e *userStoreInterfaceMock_Expecter) GetCredentials(id interface{}) *userStoreInterfaceMock_GetCredentials_Call {
+	return &userStoreInterfaceMock_GetCredentials_Call{Call: _e.mock.On("GetCredentials", id)}
+}
+
+func (_c *userStoreInterfaceMock_GetCredentials_Call) Run(run func(id string)) *userStoreInterfaceMock_GetCredentials_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *userStoreInterfaceMock_GetCredentials_Call) Return(user1 user.User, credentials []user.Credential, err error) *userStoreInterfaceMock_GetCredentials_Call {
+	_c.Call.Return(user1, credentials, err)
+	return _c
+}
+
+func (_c *userStoreInterfaceMock_GetCredentials_Call) RunAndReturn(run func(id string) (user.User, []user.Credential, error)) *userStoreInterfaceMock_GetCredentials_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetGroupCountForUser provides a mock function for the type userStoreInterfaceMock
 func (_mock *userStoreInterfaceMock) GetGroupCountForUser(userID string) (int, error) {
 	ret := _mock.Called(userID)
@@ -585,6 +653,63 @@ func (_c *userStoreInterfaceMock_UpdateUser_Call) RunAndReturn(run func(user1 *u
 	return _c
 }
 
+// UpdateUserCredentials provides a mock function for the type userStoreInterfaceMock
+func (_mock *userStoreInterfaceMock) UpdateUserCredentials(userID string, credentials []user.Credential) error {
+	ret := _mock.Called(userID, credentials)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUserCredentials")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, []user.Credential) error); ok {
+		r0 = returnFunc(userID, credentials)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// userStoreInterfaceMock_UpdateUserCredentials_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUserCredentials'
+type userStoreInterfaceMock_UpdateUserCredentials_Call struct {
+	*mock.Call
+}
+
+// UpdateUserCredentials is a helper method to define mock.On call
+//   - userID string
+//   - credentials []user.Credential
+func (_e *userStoreInterfaceMock_Expecter) UpdateUserCredentials(userID interface{}, credentials interface{}) *userStoreInterfaceMock_UpdateUserCredentials_Call {
+	return &userStoreInterfaceMock_UpdateUserCredentials_Call{Call: _e.mock.On("UpdateUserCredentials", userID, credentials)}
+}
+
+func (_c *userStoreInterfaceMock_UpdateUserCredentials_Call) Run(run func(userID string, credentials []user.Credential)) *userStoreInterfaceMock_UpdateUserCredentials_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 []user.Credential
+		if args[1] != nil {
+			arg1 = args[1].([]user.Credential)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *userStoreInterfaceMock_UpdateUserCredentials_Call) Return(err error) *userStoreInterfaceMock_UpdateUserCredentials_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *userStoreInterfaceMock_UpdateUserCredentials_Call) RunAndReturn(run func(userID string, credentials []user.Credential) error) *userStoreInterfaceMock_UpdateUserCredentials_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ValidateUserIDs provides a mock function for the type userStoreInterfaceMock
 func (_mock *userStoreInterfaceMock) ValidateUserIDs(userIDs []string) ([]string, error) {
 	ret := _mock.Called(userIDs)
@@ -643,74 +768,6 @@ func (_c *userStoreInterfaceMock_ValidateUserIDs_Call) Return(strings []string, 
 }
 
 func (_c *userStoreInterfaceMock_ValidateUserIDs_Call) RunAndReturn(run func(userIDs []string) ([]string, error)) *userStoreInterfaceMock_ValidateUserIDs_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// VerifyUser provides a mock function for the type userStoreInterfaceMock
-func (_mock *userStoreInterfaceMock) VerifyUser(id string) (user.User, []user.Credential, error) {
-	ret := _mock.Called(id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for VerifyUser")
-	}
-
-	var r0 user.User
-	var r1 []user.Credential
-	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(string) (user.User, []user.Credential, error)); ok {
-		return returnFunc(id)
-	}
-	if returnFunc, ok := ret.Get(0).(func(string) user.User); ok {
-		r0 = returnFunc(id)
-	} else {
-		r0 = ret.Get(0).(user.User)
-	}
-	if returnFunc, ok := ret.Get(1).(func(string) []user.Credential); ok {
-		r1 = returnFunc(id)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]user.Credential)
-		}
-	}
-	if returnFunc, ok := ret.Get(2).(func(string) error); ok {
-		r2 = returnFunc(id)
-	} else {
-		r2 = ret.Error(2)
-	}
-	return r0, r1, r2
-}
-
-// userStoreInterfaceMock_VerifyUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'VerifyUser'
-type userStoreInterfaceMock_VerifyUser_Call struct {
-	*mock.Call
-}
-
-// VerifyUser is a helper method to define mock.On call
-//   - id string
-func (_e *userStoreInterfaceMock_Expecter) VerifyUser(id interface{}) *userStoreInterfaceMock_VerifyUser_Call {
-	return &userStoreInterfaceMock_VerifyUser_Call{Call: _e.mock.On("VerifyUser", id)}
-}
-
-func (_c *userStoreInterfaceMock_VerifyUser_Call) Run(run func(id string)) *userStoreInterfaceMock_VerifyUser_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *userStoreInterfaceMock_VerifyUser_Call) Return(user1 user.User, credentials []user.Credential, err error) *userStoreInterfaceMock_VerifyUser_Call {
-	_c.Call.Return(user1, credentials, err)
-	return _c
-}
-
-func (_c *userStoreInterfaceMock_VerifyUser_Call) RunAndReturn(run func(id string) (user.User, []user.Credential, error)) *userStoreInterfaceMock_VerifyUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

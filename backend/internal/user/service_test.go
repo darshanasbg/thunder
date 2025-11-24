@@ -19,6 +19,7 @@
 package user
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -26,6 +27,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	oupkg "github.com/asgardeo/thunder/internal/ou"
+	"github.com/asgardeo/thunder/internal/system/config"
+	"github.com/asgardeo/thunder/internal/system/crypto/hash"
 	"github.com/asgardeo/thunder/internal/system/error/serviceerror"
 	"github.com/asgardeo/thunder/internal/system/log"
 	"github.com/asgardeo/thunder/internal/userschema"
@@ -666,4 +669,342 @@ func TestUserService_CreateUserByPath_HandlesOUServiceErrors(t *testing.T) {
 	require.Nil(t, resp)
 	require.NotNil(t, err)
 	require.Equal(t, ErrorInvalidHandlePath, *err)
+}
+
+func TestUserService_ContainsCredentialFields(t *testing.T) {
+	service := &userService{}
+
+	t.Run("ReturnsFalseWhenAttributesEmpty", func(t *testing.T) {
+		hasCreds, err := service.containsCredentialFields(json.RawMessage{})
+		require.False(t, hasCreds)
+		require.Nil(t, err)
+	})
+
+	t.Run("ReturnsErrorForInvalidJSON", func(t *testing.T) {
+		hasCreds, err := service.containsCredentialFields(json.RawMessage(`{"password":`))
+		require.False(t, hasCreds)
+		require.NotNil(t, err)
+		require.Equal(t, ErrorInvalidRequestFormat, *err)
+	})
+
+	t.Run("ReturnsFalseWhenNoCredentialFields", func(t *testing.T) {
+		hasCreds, err := service.containsCredentialFields(json.RawMessage(`{"email":"a@b.com"}`))
+		require.False(t, hasCreds)
+		require.Nil(t, err)
+	})
+
+	t.Run("ReturnsTrueForSupportedCredentialFields", func(t *testing.T) {
+		for _, field := range []string{"password", "pin", "secret"} {
+			payload, marshalErr := json.Marshal(map[string]string{
+				"email": "user@example.com",
+				field:   "value",
+			})
+			require.NoError(t, marshalErr)
+
+			hasCreds, err := service.containsCredentialFields(payload)
+			require.Nil(t, err)
+			require.True(t, hasCreds, "expected field %s to be detected", field)
+		}
+	})
+}
+
+func TestUserService_UpdateUserCredentials_Validation(t *testing.T) {
+	t.Run("ReturnsAuthErrorWhenUserIDMissing", func(t *testing.T) {
+		service := &userService{}
+
+		err := service.UpdateUserCredentials("", json.RawMessage(`{"password":"pw"}`))
+		require.NotNil(t, err)
+		require.Equal(t, ErrorAuthenticationFailed, *err)
+	})
+
+	t.Run("ReturnsMissingCredentialsWhenPayloadEmpty", func(t *testing.T) {
+		service := &userService{}
+
+		err := service.UpdateUserCredentials("user-1", json.RawMessage{})
+		require.NotNil(t, err)
+		require.Equal(t, ErrorMissingCredentials, *err)
+	})
+}
+
+func TestUserService_UpdateUserCredentials_UserNotFound(t *testing.T) {
+	userStoreMock := newUserStoreInterfaceMock(t)
+	userStoreMock.
+		On("GetCredentials", "user-1").
+		Return(User{}, []Credential{}, ErrUserNotFound).
+		Once()
+
+	service := &userService{
+		userStore: userStoreMock,
+	}
+
+	config.ResetThunderRuntime()
+	initErr := config.InitializeThunderRuntime("", &config.Config{})
+	require.NoError(t, initErr)
+	t.Cleanup(config.ResetThunderRuntime)
+
+	svcErr := service.UpdateUserCredentials("user-1", json.RawMessage(`{"password":"pw"}`))
+	require.NotNil(t, svcErr)
+	require.Equal(t, ErrorUserNotFound, *svcErr)
+	userStoreMock.AssertNotCalled(t, "UpdateUserCredentials", mock.Anything, mock.Anything)
+}
+
+func TestUserService_UpdateUserCredentials_Succeeds(t *testing.T) {
+	userStoreMock := newUserStoreInterfaceMock(t)
+	existingCredentials := []Credential{
+		{
+			CredentialType: "password",
+			StorageType:    "hash",
+			StorageAlgo:    hash.SHA256,
+			Value:          "old-hash",
+			Salt:           "old-salt",
+		},
+		{
+			CredentialType: "pin",
+			StorageType:    "hash",
+			StorageAlgo:    hash.SHA256,
+			Value:          "pin-hash",
+			Salt:           "pin-salt",
+		},
+	}
+	userStoreMock.
+		On("GetCredentials", "user-1").
+		Return(User{ID: "user-1"}, existingCredentials, nil).
+		Once()
+	var captured []Credential
+	userStoreMock.
+		On("UpdateUserCredentials", "user-1", mock.Anything).
+		Run(func(args mock.Arguments) {
+			if creds, ok := args[1].([]Credential); ok {
+				captured = creds
+			}
+		}).
+		Return(nil).
+		Once()
+
+	service := &userService{
+		userStore: userStoreMock,
+	}
+
+	config.ResetThunderRuntime()
+	initErr := config.InitializeThunderRuntime("", &config.Config{})
+	require.NoError(t, initErr)
+	t.Cleanup(config.ResetThunderRuntime)
+
+	svcErr := service.UpdateUserCredentials("user-1", json.RawMessage(`{"password":"newPass"}`))
+	require.Nil(t, svcErr)
+	require.Len(t, captured, 2)
+
+	var passwordCred, pinCred *Credential
+	for i := range captured {
+		switch captured[i].CredentialType {
+		case "password":
+			passwordCred = &captured[i]
+		case "pin":
+			pinCred = &captured[i]
+		}
+	}
+
+	require.NotNil(t, passwordCred)
+	require.NotNil(t, pinCred)
+	require.Equal(t, "hash", passwordCred.StorageType)
+	require.NotEmpty(t, passwordCred.Value)
+	require.NotEmpty(t, passwordCred.Salt)
+	require.NotEqual(t, "old-hash", passwordCred.Value)
+	require.Equal(t, "pin-hash", pinCred.Value)
+	require.Equal(t, "pin-salt", pinCred.Salt)
+}
+
+func TestUserService_MergeCredentials(t *testing.T) {
+	service := &userService{}
+
+	type testCase struct {
+		name     string
+		existing []Credential
+		provided []Credential
+		expected []Credential
+	}
+
+	tests := []testCase{
+		{
+			name: "ReplacesMatchingAndPreservesExistingOrder",
+			existing: []Credential{
+				{CredentialType: "password", StorageType: "hash", Value: "old-pass", Salt: "salt-1"},
+				{CredentialType: "pin", StorageType: "hash", Value: "old-pin", Salt: "salt-2"},
+			},
+			provided: []Credential{
+				{CredentialType: "password", StorageType: "hash", Value: "new-pass", Salt: "salt-3"},
+				{CredentialType: "secret", StorageType: "hash", Value: "secret", Salt: "salt-4"},
+			},
+			expected: []Credential{
+				{CredentialType: "password", StorageType: "hash", Value: "new-pass", Salt: "salt-3"},
+				{CredentialType: "pin", StorageType: "hash", Value: "old-pin", Salt: "salt-2"},
+				{CredentialType: "secret", StorageType: "hash", Value: "secret", Salt: "salt-4"},
+			},
+		},
+		{
+			name:     "ProvidedDuplicatesKeepLastValue",
+			existing: []Credential{{CredentialType: "pin", StorageType: "hash", Value: "existing-pin", Salt: "salt-1"}},
+			provided: []Credential{
+				{CredentialType: "password", StorageType: "hash", Value: "first-pass", Salt: "salt-a"},
+				{CredentialType: "password", StorageType: "hash", Value: "second-pass", Salt: "salt-b"},
+			},
+			expected: []Credential{
+				{CredentialType: "pin", StorageType: "hash", Value: "existing-pin", Salt: "salt-1"},
+				{CredentialType: "password", StorageType: "hash", Value: "second-pass", Salt: "salt-b"},
+			},
+		},
+		{
+			name:     "NoProvidedCredentialsReturnsExisting",
+			existing: []Credential{{CredentialType: "password", StorageType: "hash", Value: "only", Salt: "salt-1"}},
+			provided: []Credential{},
+			expected: []Credential{{CredentialType: "password", StorageType: "hash", Value: "only", Salt: "salt-1"}},
+		},
+		{
+			name:     "NoExistingCredentialsReturnsProvidedInOrder",
+			existing: []Credential{},
+			provided: []Credential{
+				{CredentialType: "password", StorageType: "hash", Value: "first", Salt: "salt-1"},
+				{CredentialType: "password", StorageType: "hash", Value: "second", Salt: "salt-2"},
+				{CredentialType: "pin", StorageType: "hash", Value: "pin-val", Salt: "salt-3"},
+			},
+			expected: []Credential{
+				{CredentialType: "password", StorageType: "hash", Value: "second", Salt: "salt-2"},
+				{CredentialType: "pin", StorageType: "hash", Value: "pin-val", Salt: "salt-3"},
+			},
+		},
+		{
+			name: "ReplacesMultipleExistingTypesAndAppendsNew",
+			existing: []Credential{
+				{CredentialType: "password", StorageType: "hash", Value: "old-pass", Salt: "salt-1"},
+				{CredentialType: "pin", StorageType: "hash", Value: "old-pin", Salt: "salt-2"},
+			},
+			provided: []Credential{
+				{CredentialType: "pin", StorageType: "hash", Value: "new-pin", Salt: "salt-3"},
+				{CredentialType: "password", StorageType: "hash", Value: "new-pass", Salt: "salt-4"},
+				{CredentialType: "secret", StorageType: "hash", Value: "new-secret", Salt: "salt-5"},
+			},
+			expected: []Credential{
+				{CredentialType: "password", StorageType: "hash", Value: "new-pass", Salt: "salt-4"},
+				{CredentialType: "pin", StorageType: "hash", Value: "new-pin", Salt: "salt-3"},
+				{CredentialType: "secret", StorageType: "hash", Value: "new-secret", Salt: "salt-5"},
+			},
+		},
+		{
+			name:     "ReturnsEmptyWhenNoCredentials",
+			existing: []Credential{},
+			provided: []Credential{},
+			expected: []Credential{},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			merged := service.mergeCredentials(tc.existing, tc.provided)
+			require.Equal(t, tc.expected, merged)
+		})
+	}
+}
+
+func TestUserService_UpdateUserAttributes_Validation(t *testing.T) {
+	service := &userService{}
+
+	resp, err := service.UpdateUserAttributes("", json.RawMessage(`{"email":"a@b.com"}`))
+	require.Nil(t, resp)
+	require.NotNil(t, err)
+	require.Equal(t, ErrorMissingUserID, *err)
+
+	resp, err = service.UpdateUserAttributes("user-1", json.RawMessage{})
+	require.Nil(t, resp)
+	require.NotNil(t, err)
+	require.Equal(t, ErrorInvalidRequestFormat, *err)
+
+	resp, err = service.UpdateUserAttributes("user-1", json.RawMessage(`{"password":"Secret123"}`))
+	require.Nil(t, resp)
+	require.NotNil(t, err)
+	require.Equal(t, ErrorInvalidRequestFormat, *err)
+}
+
+func TestUserService_UpdateUserAttributes_UserNotFound(t *testing.T) {
+	storeMock := newUserStoreInterfaceMock(t)
+	storeMock.On("GetUser", "user-1").Return(User{}, ErrUserNotFound).Once()
+
+	service := &userService{
+		userStore: storeMock,
+	}
+
+	resp, err := service.UpdateUserAttributes("user-1", json.RawMessage(`{"email":"a@b.com"}`))
+	require.Nil(t, resp)
+	require.NotNil(t, err)
+	require.Equal(t, ErrorUserNotFound, *err)
+	storeMock.AssertNotCalled(t, "UpdateUser", mock.Anything)
+}
+
+func TestUserService_UpdateUserAttributes_SchemaValidationFails(t *testing.T) {
+	storeMock := newUserStoreInterfaceMock(t)
+	storeMock.
+		On("GetUser", "user-1").
+		Return(User{ID: "user-1", Type: testUserType, Attributes: json.RawMessage(`{"email":"old"}`)}, nil).
+		Once()
+
+	schemaMock := userschemamock.NewUserSchemaServiceInterfaceMock(t)
+	schemaMock.
+		On("ValidateUser", testUserType, mock.Anything).
+		Return(false, &userschema.ErrorUserSchemaNotFound).
+		Once()
+
+	service := &userService{
+		userStore:         storeMock,
+		userSchemaService: schemaMock,
+	}
+
+	resp, err := service.UpdateUserAttributes("user-1", json.RawMessage(`{"email":"new@example.com"}`))
+	require.Nil(t, resp)
+	require.NotNil(t, err)
+	require.Equal(t, ErrorUserSchemaNotFound, *err)
+	storeMock.AssertNotCalled(t, "UpdateUser", mock.Anything)
+}
+
+func TestUserService_UpdateUserAttributes_Succeeds(t *testing.T) {
+	storeMock := newUserStoreInterfaceMock(t)
+	storeMock.
+		On("GetUser", "user-1").
+		Return(User{ID: "user-1", Type: testUserType, Attributes: json.RawMessage(`{"email":"old@example.com"}`)}, nil).
+		Once()
+
+	schemaMock := userschemamock.NewUserSchemaServiceInterfaceMock(t)
+	schemaMock.
+		On("ValidateUser", testUserType, mock.Anything).
+		Return(true, (*serviceerror.ServiceError)(nil)).
+		Once()
+	schemaMock.
+		On("ValidateUserUniqueness", testUserType, mock.Anything, mock.Anything).
+		Return(true, (*serviceerror.ServiceError)(nil)).
+		Once()
+
+	var savedUser *User
+	storeMock.
+		On("UpdateUser", mock.Anything).
+		Run(func(args mock.Arguments) {
+			if u, ok := args[0].(*User); ok {
+				savedUser = u
+			}
+		}).
+		Return(nil).
+		Once()
+
+	service := &userService{
+		userStore:         storeMock,
+		userSchemaService: schemaMock,
+	}
+
+	newAttrs := json.RawMessage(`{"email":"new@example.com"}`)
+	resp, err := service.UpdateUserAttributes("user-1", newAttrs)
+	require.Nil(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, "user-1", resp.ID)
+	require.JSONEq(t, string(newAttrs), string(resp.Attributes))
+
+	require.NotNil(t, savedUser)
+	require.Equal(t, "user-1", savedUser.ID)
+	require.JSONEq(t, string(newAttrs), string(savedUser.Attributes))
 }
