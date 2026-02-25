@@ -1,0 +1,107 @@
+---
+title: Multi-Tenant SaaS Identity (B2B)
+description: Define identity, access, and governance requirements for multi-tenant B2B SaaS workspaces.
+sidebar_position: 1
+---
+
+# Multi-Tenant SaaS Identity (B2B)
+
+Use this pattern when your platform serves customer organizations and each organization needs an isolated workspace with
+controlled access.
+
+## Use Case Scope
+
+The SaaS platform must provide identity, access control, and governance for multiple customer organizations, where each
+organization operates in an isolated workspace.
+
+## Organization Onboarding and Authentication
+
+The first interaction in the SaaS application must onboard a new customer by completing two mandatory actions in a
+single flow:
+
+1. Register the user in the platform.
+2. Create a dedicated workspace for that user and assign them as the workspace owner.
+
+User registration must support:
+
+- Email with OTP or password
+- Google authentication
+- GitHub authentication
+
+For operational integrations, the platform must expose organization lifecycle events, including workspace creation
+status, so internal and third-party systems can synchronize and provision related data.
+
+Workspace administrator authentication must include:
+
+- Secure login with email and OTP or password
+- OAuth login through Google and GitHub
+- Login failure tracking
+- Secure session management
+
+## Organization-Level User Management
+
+The platform must allow workspace owners and administrators to:
+
+- Send team invitations by email
+- Assign roles during invitation or onboarding
+
+The platform must ensure invited users:
+
+- Become platform users with access only to the specific workspace
+- Be blocked from accessing other workspaces
+
+Invitation management must support:
+
+- Invitation expiry
+- Invitation revocation by the inviter
+
+## Workspace Authorization and Subscription Controls
+
+Each workspace must enforce role-based access control:
+
+- Roles define permission scopes
+- The platform enforces permissions at both API and UI levels
+- Only authorized users can perform privileged actions
+
+Each workspace must be linked to a subscription tier. The tier must control:
+
+- Feature availability
+- Usage limits
+- API access constraints
+
+When a workspace subscription changes, the platform must update authorization and entitlements dynamically based on the
+new tier.
+
+## API Access Enforcement
+
+Every API request must pass authentication and authorization checks. Authorization must validate:
+
+- User identity
+- Workspace membership
+- Role permissions
+- Subscription tier
+
+The platform must reject unauthorized access attempts.
+
+## Platform Monitoring and Governance
+
+The platform must provide platform administrators with a cross-workspace dashboard that includes:
+
+- Total organization registrations
+- Monthly active users (MAU)
+- Authentication attempts
+- Login failures
+- Workspace growth trends
+
+The platform must allow platform administrators to govern customer workspaces by:
+
+- Viewing all registered workspaces
+- Viewing workspace metadata
+- Monitoring workspace activity indicators
+- Deactivating workspaces
+
+When a workspace is deactivated, the platform must prevent users in that workspace from:
+
+- Logging in
+- Accessing APIs
+- Using the platform
