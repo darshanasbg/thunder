@@ -19,6 +19,8 @@
 package application
 
 import (
+	"encoding/json"
+
 	"github.com/stretchr/testify/mock"
 
 	"testing"
@@ -562,4 +564,59 @@ metadata:
 	assert.NotNil(s.T(), dto.Metadata)
 	assert.Equal(s.T(), "production", dto.Metadata["env"])
 	assert.Equal(s.T(), "platform", dto.Metadata["team"])
+}
+
+func (s *ParseToApplicationDTOTestSuite) TestMakeAppEntityParser_PublicClientWithoutSecretStoresClientID() {
+	yamlData := []byte(`
+id: public-oauth-app
+name: Public OAuth Application
+inbound_auth_config:
+  - type: oauth2
+    config:
+      client_id: public-client-id-123
+      pkce_required: true
+      public_client: true
+`)
+
+	parser := makeAppEntityParser()
+	entityObj, _, sysCredsJSON, err := parser(yamlData)
+
+	assert.NoError(s.T(), err)
+	assert.NotNil(s.T(), entityObj)
+	assert.Nil(s.T(), sysCredsJSON)
+
+	var sysAttrs map[string]interface{}
+	err = json.Unmarshal(entityObj.SystemAttributes, &sysAttrs)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "Public OAuth Application", sysAttrs[fieldName])
+	assert.Equal(s.T(), "public-client-id-123", sysAttrs[fieldClientID])
+}
+
+func (s *ParseToApplicationDTOTestSuite) TestMakeAppEntityParser_ConfidentialClientStoresSecretAndClientID() {
+	yamlData := []byte(`
+id: confidential-oauth-app
+name: Confidential OAuth Application
+inbound_auth_config:
+  - type: oauth2
+    config:
+      client_id: confidential-client-id-123
+      client_secret: confidential-secret-456
+`)
+
+	parser := makeAppEntityParser()
+	entityObj, _, sysCredsJSON, err := parser(yamlData)
+
+	assert.NoError(s.T(), err)
+	assert.NotNil(s.T(), entityObj)
+	assert.NotNil(s.T(), sysCredsJSON)
+
+	var sysAttrs map[string]interface{}
+	err = json.Unmarshal(entityObj.SystemAttributes, &sysAttrs)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "confidential-client-id-123", sysAttrs[fieldClientID])
+
+	var sysCreds map[string]interface{}
+	err = json.Unmarshal(sysCredsJSON, &sysCreds)
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), "confidential-secret-456", sysCreds[fieldClientSecret])
 }

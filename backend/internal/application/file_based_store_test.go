@@ -25,7 +25,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/asgardeo/thunder/internal/application/model"
 	declarativeresource "github.com/asgardeo/thunder/internal/system/declarative_resource"
 	"github.com/asgardeo/thunder/internal/system/declarative_resource/entity"
 )
@@ -94,13 +93,35 @@ func (suite *FileBasedStoreTestSuite) TestGetApplicationByID_NotFound() {
 
 // Tests for GetOAuthConfigByAppID method
 
-func (suite *FileBasedStoreTestSuite) TestGetOAuthConfigByAppID_AlwaysNotFound() {
-	// File-based store does not support OAuth config by entity ID
-	result, err := suite.store.GetOAuthConfigByAppID(context.Background(), "any-entity")
+func (suite *FileBasedStoreTestSuite) TestGetOAuthConfigByAppID_NoOAuthConfig() {
+	app := suite.createTestApp("app-no-oauth")
+	err := suite.store.CreateApplication(context.Background(), app)
+	suite.NoError(err)
 
-	suite.Error(err)
+	result, err := suite.store.GetOAuthConfigByAppID(context.Background(), "app-no-oauth")
+
+	suite.NoError(err)
 	suite.Nil(result)
-	suite.Equal(model.ApplicationNotFoundError, err)
+}
+
+func (suite *FileBasedStoreTestSuite) TestGetOAuthConfigByAppID_Success() {
+	err := suite.store.CreateApplication(context.Background(), applicationConfigDAO{
+		ID: "app-with-oauth",
+		Properties: map[string]interface{}{
+			propOAuthConfig: oAuthConfig{
+				RedirectURIs: []string{"https://example.com/callback"},
+			},
+		},
+	})
+	suite.NoError(err)
+
+	result, err := suite.store.GetOAuthConfigByAppID(context.Background(), "app-with-oauth")
+
+	suite.NoError(err)
+	suite.NotNil(result)
+	suite.Equal("app-with-oauth", result.AppID)
+	suite.NotNil(result.OAuthConfig)
+	suite.Equal([]string{"https://example.com/callback"}, result.OAuthConfig.RedirectURIs)
 }
 
 // Tests for GetApplicationList method

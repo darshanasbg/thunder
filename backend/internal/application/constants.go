@@ -28,11 +28,12 @@ const (
 
 // Field keys for application config properties.
 const (
-	propURL       = "url"
-	propLogoURL   = "logo_url"
-	propTosURI    = "tos_uri"
-	propPolicyURI = "policy_uri"
-	propContacts  = "contacts"
-	propTemplate  = "template"
-	propMetadata  = "metadata"
+	propURL         = "url"
+	propLogoURL     = "logo_url"
+	propTosURI      = "tos_uri"
+	propPolicyURI   = "policy_uri"
+	propContacts    = "contacts"
+	propTemplate    = "template"
+	propMetadata    = "metadata"
+	propOAuthConfig = "oauth_config"
 )

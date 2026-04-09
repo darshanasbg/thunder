@@ -41,6 +41,21 @@ func (f *fileBasedStore) Create(id string, data interface{}) error {
 		return fmt.Errorf("unexpected data type: %T", data)
 	}
 	dao := toConfigDAO(dto)
+	oauthConfigJSON, err := toOAuthConfigJSON(dto)
+	if err != nil {
+		return err
+	}
+
+	if len(oauthConfigJSON) > 0 {
+		var oauthCfg oAuthConfig
+		if err := json.Unmarshal(oauthConfigJSON, &oauthCfg); err != nil {
+			return fmt.Errorf("failed to unmarshal OAuth config JSON: %w", err)
+		}
+		if dao.Properties == nil {
+			dao.Properties = make(map[string]interface{})
+		}
+		dao.Properties[propOAuthConfig] = oauthCfg
+	}
 	return f.CreateApplication(context.Background(), dao)
 }
 
@@ -69,8 +84,35 @@ func (f *fileBasedStore) GetApplicationByID(_ context.Context, id string) (*appl
 }
 
 // GetOAuthConfigByAppID implements applicationStoreInterface.
-func (f *fileBasedStore) GetOAuthConfigByAppID(_ context.Context, _ string) (*oauthConfigDAO, error) {
-	return nil, model.ApplicationNotFoundError
+func (f *fileBasedStore) GetOAuthConfigByAppID(_ context.Context, id string) (*oauthConfigDAO, error) {
+	app, err := f.GetApplicationByID(context.Background(), id)
+	if err != nil {
+		return nil, err
+	}
+	if app == nil || app.Properties == nil {
+		return nil, nil
+	}
+
+	rawOAuthConfig, ok := app.Properties[propOAuthConfig]
+	if !ok || rawOAuthConfig == nil {
+		return nil, nil
+	}
+
+	var oauthCfg oAuthConfig
+	switch cfg := rawOAuthConfig.(type) {
+	case oAuthConfig:
+		oauthCfg = cfg
+	case *oAuthConfig:
+		if cfg == nil {
+			return nil, nil
+		}
+		oauthCfg = *cfg
+	default:
+		declarativeresource.LogTypeAssertionError("application OAuth config", id)
+		return nil, model.ApplicationDataCorruptedError
+	}
+
+	return &oauthConfigDAO{AppID: id, OAuthConfig: &oauthCfg}, nil
 }
 
 // GetApplicationList implements applicationStoreInterface.
